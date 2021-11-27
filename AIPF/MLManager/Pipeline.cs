@@ -1,46 +1,31 @@
 ﻿using Microsoft.ML;
-using AIPF.Images;
-using System;
 using AIPF.MLManager.Modifiers;
+using System.Collections;
+using System.Collections.Generic;
+using System;
 
 namespace AIPF.MLManager
 {
     public class Pipeline<T> : IPipeline where T : class, new()
     {
-        private MLContext mlContext;
-        private Action<IPipeline> UpdatePipeline;
-        private IEstimator<ITransformer> pipeline;
-        private IModificator modificator;
+        private readonly IModificator modificator;
+        private IPipeline next = null;
 
-        public Pipeline(MLContext mlContext, Action<IPipeline> UpdatePipeline, IModificator modificator, IEstimator<ITransformer> pipeline)
+        public Pipeline(IModificator modificator)
         {
-            this.mlContext = mlContext;
-            this.pipeline = pipeline;
-            this.UpdatePipeline = UpdatePipeline;
             this.modificator = modificator;
-            UpdatePipeline?.Invoke(this);
         }
 
         public Pipeline<R> Append<R>(IModifier<T, R> modifier) where R : class, new()
         {
-            var pipeline = modifier.GetPipeline(mlContext);
-            if (this.pipeline == null) this.pipeline = pipeline;
-            else this.pipeline = this.pipeline.Append(pipeline);
-            return new Pipeline<R>(mlContext, UpdatePipeline, modifier, this.pipeline);
+            var pipeline = new Pipeline<R>(modifier);
+            next = pipeline;
+            return pipeline;
         }
 
-        public Pipeline<OutputImage> AddMlAlgorithm(int numberOfIteration = 10)
+        public IPipeline GetNext()
         {
-            if (pipeline == null)
-                throw new Exception("Pipeline required");
-
-            var trainer = mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(labelColumnName: "Label",
-                featureColumnName: "Features",
-                maximumNumberOfIterations: numberOfIteration);
-            pipeline = pipeline.Append(trainer)
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(OutputImage.Digit), "Label"));
-
-            return new Pipeline<OutputImage>(mlContext, UpdatePipeline, null, pipeline);
+            return next;
         }
 
         public IModificator GetModificator()
@@ -48,9 +33,54 @@ namespace AIPF.MLManager
             return modificator;
         }
 
-        public IEstimator<ITransformer> GetPipeline()
+        public void PrintPipelineStructure()
         {
+            int index = 1;
+            foreach (var p in this)
+            {
+                Console.WriteLine($"{index++} - { p.GetModificator().GetType() }");
+            }
+            Console.WriteLine("");
+        }
+
+        public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
+        {
+            IEstimator<ITransformer> pipeline = null;
+            foreach (var p in this)
+            {
+                if (pipeline == null) pipeline = p.GetModificator().GetPipeline(mlContext);
+                else pipeline = pipeline.Append(p.GetModificator().GetPipeline(mlContext));
+            }
             return pipeline;
+        }
+
+        /* Another implementation of GetPipeline (using while instead of foreach)
+        public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
+        {
+            var pipeline = modificator.GetPipeline(mlContext);
+            var nextPipeline = next;
+            while(nextPipeline != null)
+            {
+                pipeline = pipeline.Append(nextPipeline.GetModificator().GetPipeline(mlContext));
+                nextPipeline = nextPipeline.GetNext();
+            }
+            return pipeline;
+        }
+        */
+
+        public IEnumerator<IPipeline> GetEnumerator()
+        {
+            IPipeline current = this;
+            while (current != null)
+            {
+                yield return current;
+                current = current.GetNext();
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

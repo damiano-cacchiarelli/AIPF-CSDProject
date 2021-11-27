@@ -19,7 +19,7 @@ namespace AIPF.MLManager.Modifiers
         protected override void Log()
         {
             if (Processed == 0) Console.WriteLine("");
-            Console.WriteLine($"Progress Indicator work! {processName} - { Percentage } %");
+            Console.WriteLine($"{processName} - Work  in progress... { Percentage }%");
         }
     }
 }

@@ -28,7 +28,7 @@ namespace AIPF.MLManager.Modifiers
         protected virtual void Log()
         {
             if (Processed == 0) Console.WriteLine("");
-            Console.WriteLine($"Progress Indicator work! {processName} - {Processed++}");
+            Console.WriteLine($"{processName} - Work  in progress... {Processed++} / {TotalCount}");
         }
     }
 }

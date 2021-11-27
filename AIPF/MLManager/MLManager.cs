@@ -9,8 +9,9 @@ namespace AIPF.MLManager
     {
         private readonly MLContext mlContext;
 
-        private List<IPipeline> pipelines = new List<IPipeline>();
-        private IEstimator<ITransformer> pipeline;
+        private IPipeline linkedPipeline;
+        
+        //private IEstimator<ITransformer> pipeline;
         private ITransformer model;
         private PredictionEngine<I, O> predictionEngine;
 
@@ -21,30 +22,26 @@ namespace AIPF.MLManager
 
         public Pipeline<R> CreatePipeline<R>(IModifier<I, R> modifier) where R : class, new()
         {
-            // TODO: remove modifier.GetPipeline(mlContext)
-            return new Pipeline<R>(mlContext, UpdatePipeline, modifier, modifier.GetPipeline(mlContext));
+            var pipeline = new Pipeline<R>(modifier);
+            linkedPipeline = pipeline;
+            return pipeline;
         }
 
-        private void UpdatePipeline(IPipeline pipeline)
+        public void PrintPipelineStructure()
         {
-            pipelines.Add(pipeline);
-            this.pipeline = pipeline.GetPipeline();
-        }
-
-        // TODO: remove
-        private void UpdatePipeline(IEstimator<ITransformer> pipeline)
-        {
-            this.pipeline = pipeline;
+            linkedPipeline.PrintPipelineStructure();
         }
 
         public void Fit(IEnumerable<I> rawImages, out IDataView transformedDataView)
         {
+            var pipeline = linkedPipeline.GetPipeline(mlContext);
+
             if (pipeline == null)
                 throw new Exception("The pipeline must be valid");
             
-            foreach  (var p in pipelines)
+            // Injecting some values inside the modifiers
+            foreach  (var p in linkedPipeline)
             {
-                ITotalNumberRequirement it = p.GetModificator() as ITotalNumberRequirement;
                 if(p.GetModificator() is ITotalNumberRequirement)
                 {
                     (p.GetModificator() as ITotalNumberRequirement).TotalCount = new List<I>(rawImages).Count;

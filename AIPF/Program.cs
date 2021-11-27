@@ -27,7 +27,7 @@ namespace AIPF
                 .Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
                 // OR using the ml.net default ResizeImages method
                 //.Append(new VectorImageResizer())
-                .AddMlAlgorithm(10);
+                .Append(new SdcaMaximumEntropy(1));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
@@ -55,7 +55,7 @@ namespace AIPF
             mlMaster.CreatePipeline(new ProgressPercentageIndicator<ProcessedImage>(@"Process#2"))
                 .Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
                 .Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
-                .AddMlAlgorithm(1);
+                .Append(new SdcaMaximumEntropy(1));
             mlMaster.Fit(processedImages, out _);
 
             ProcessedImage rawImageToPredict = new ProcessedImage()
