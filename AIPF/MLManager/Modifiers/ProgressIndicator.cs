@@ -3,16 +3,15 @@ using System;
 
 namespace AIPF.MLManager.Modifiers
 {
-    public class ProgressIndicator<I> : IModifier<I, I> where I : class, ICopy<I>, new()
+    public class ProgressIndicator<I> : IModifier<I, I>, ITotalNumberRequirement where I : class, ICopy<I>, new()
     {
         protected readonly string processName;
-        protected readonly bool toString;
         public int Processed { get; protected set; }
+        public int TotalCount { get; set; } = 1;
 
-        public ProgressIndicator(string processName, bool toString = false)
+        public ProgressIndicator(string processName)
         {
             this.processName = processName;
-            this.toString = toString;
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -23,10 +22,6 @@ namespace AIPF.MLManager.Modifiers
         private void MappingOperation(I input, I output)
         {
             input.Copy(ref output);
-            if (toString)
-            {
-                Console.WriteLine($"{input} - {output}");
-            }
             Log();
         }
 
