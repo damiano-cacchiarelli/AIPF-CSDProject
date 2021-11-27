@@ -1,4 +1,5 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.Modifiers;
+using Microsoft.ML;
 using System;
 using System.Collections.Generic;
 
@@ -8,6 +9,7 @@ namespace AIPF.MLManager
     {
         private readonly MLContext mlContext;
 
+        private List<IPipeline> pipelines = new List<IPipeline>();
         private IEstimator<ITransformer> pipeline;
         private ITransformer model;
         private PredictionEngine<I, O> predictionEngine;
@@ -19,9 +21,17 @@ namespace AIPF.MLManager
 
         public Pipeline<R> CreatePipeline<R>(IModifier<I, R> modifier) where R : class, new()
         {
-            return new Pipeline<R>(mlContext, UpdatePipeline, modifier.GetPipeline(mlContext));
+            // TODO: remove modifier.GetPipeline(mlContext)
+            return new Pipeline<R>(mlContext, UpdatePipeline, modifier, modifier.GetPipeline(mlContext));
         }
 
+        private void UpdatePipeline(IPipeline pipeline)
+        {
+            pipelines.Add(pipeline);
+            this.pipeline = pipeline.GetPipeline();
+        }
+
+        // TODO: remove
         private void UpdatePipeline(IEstimator<ITransformer> pipeline)
         {
             this.pipeline = pipeline;
@@ -31,16 +41,16 @@ namespace AIPF.MLManager
         {
             if (pipeline == null)
                 throw new Exception("The pipeline must be valid");
-            /*
-            pipelines: Pipeline<?>[];
+            
             foreach  (var p in pipelines)
             {
-                if(p is ITotalNumber)
+                ITotalNumberRequirement it = p.GetModificator() as ITotalNumberRequirement;
+                if(p.GetModificator() is ITotalNumberRequirement)
                 {
-                    (p as ITotalNumber).TotalCount = new List<I>(rawImages).Count;
+                    (p.GetModificator() as ITotalNumberRequirement).TotalCount = new List<I>(rawImages).Count;
                 }
             }
-            */
+            
             IDataView data = mlContext.Data.LoadFromEnumerable(rawImages);
             model = pipeline.Fit(data);
             transformedDataView = model.Transform(data);

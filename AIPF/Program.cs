@@ -52,7 +52,7 @@ namespace AIPF
 
             // Train & predict Pipeline
             var mlMaster = new MLManager<ProcessedImage, OutputImage>();
-            mlMaster.CreatePipeline(new ProgressIndicator<ProcessedImage>(@"Process#2"))
+            mlMaster.CreatePipeline(new ProgressPercentageIndicator<ProcessedImage>(@"Process#2"))
                 .Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
                 .Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
                 .AddMlAlgorithm(1);
