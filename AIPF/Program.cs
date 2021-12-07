@@ -11,7 +11,8 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            PredictUsingMorePipeline();
+            //PredictUsingMorePipeline();
+            PredictUsingOnePipeline();
         }
 
         static void PredictUsingOnePipeline()
@@ -22,15 +23,15 @@ namespace AIPF
             var mlMaster = new MLManager<RawImage, OutputImage>();
             mlMaster.CreatePipeline(new ProgressIndicator<RawImage>(@"Process#1"))
                 // Using our custom image resizer
-                .Append(new CustomImageResizer())
-                .Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
-                .Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
+                //.Append(new CustomImageResizer())
+                //.Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
+                //.Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
                 // OR using the ml.net default ResizeImages method
-                //.Append(new VectorImageResizer())
+                .Append(new VectorImageResizer(applyGrayScale: true))
                 .Append(new SdcaMaximumEntropy(1));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
-
+            transformedDataView.Preview();
             // Digit = 6
             RawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);

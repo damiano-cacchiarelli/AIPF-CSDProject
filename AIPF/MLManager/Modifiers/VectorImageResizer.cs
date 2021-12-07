@@ -11,15 +11,16 @@ namespace AIPF.MLManager.Modifiers
 
         public override IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
-            var pipeline = mlContext.Transforms.ConvertToImage(OriginalWidth, OriginalHeight, outputColumnName: "Image", inputColumnName: nameof(RawImage.Elements), colorsPresent: Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits.Blue)
-                .Append(mlContext.Transforms.ResizeImages(outputColumnName: "ResizedImage", ResizedWidth, ResizedHeight, inputColumnName: "Image", ResizingKind.Fill));
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.ConvertToImage(OriginalWidth, OriginalHeight, outputColumnName: "Image", inputColumnName: nameof(RawImage.Elements)); // , colorsPresent: Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits.Blue
 
             if (ApplyGrayScale)
-                pipeline.Append(mlContext.Transforms.ConvertToGrayscale(outputColumnName: "GrayScaleResizedImage", inputColumnName: "ResizedImage"));
+                pipeline = pipeline.Append(mlContext.Transforms.ConvertToGrayscale(outputColumnName: "GrayScaleResizedImage", inputColumnName: "Image"));                
 
-            return pipeline.Append(mlContext.Transforms.ExtractPixels(outputColumnName: nameof(ProcessedImage.Pixels), inputColumnName: "ResizedImage", colorsToExtract: Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits.Blue))
+            return pipeline.Append(mlContext.Transforms.ResizeImages(outputColumnName: "ResizedImage", ResizedWidth, ResizedHeight, inputColumnName: ApplyGrayScale ? "GrayScaleResizedImage" : "Image", ResizingKind.Fill))
+                .Append(mlContext.Transforms.ExtractPixels(outputColumnName: nameof(ProcessedImage.Pixels), inputColumnName: "ResizedImage", colorsToExtract: Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits.Blue))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey(outputColumnName: "Label", inputColumnName: nameof(RawImage.Digit)))
                 .Append(mlContext.Transforms.Concatenate(outputColumnName: "Features", nameof(ProcessedImage.Pixels)));
+
         }
     }
 }

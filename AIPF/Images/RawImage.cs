@@ -6,7 +6,7 @@ namespace AIPF.Images
 {
     public class RawImage : IRawImage, ICopy<RawImage>
     {
-        [VectorType(32 * 32 * 1)]
+        [VectorType(32 * 32 * 3)]
         public float[] Elements { get; set; }
 
         public byte Digit { get; set; }
@@ -26,7 +26,10 @@ namespace AIPF.Images
             {
                 foreach (char c in row)
                 {
-                    list.Add((float)char.GetNumericValue(c));
+                    float color = 255 - ((float)char.GetNumericValue(c) * 255);
+                    list.Add(color); // r = 0 / 255
+                    list.Add(color); // g = 0 / 255
+                    list.Add(color); // b = 0 / 255
                 }
             });
             Elements = list.ToArray();
