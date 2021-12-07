@@ -11,7 +11,7 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            PredictUsingMorePipeline();
+            PredictUsingOnePipeline();
         }
 
         static void PredictUsingOnePipeline()
@@ -30,6 +30,8 @@ namespace AIPF
                 .Append(new SdcaMaximumEntropy(1));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
+
+            mlMaster.EvaluateAll(transformedDataView);
 
             // Digit = 6
             RawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();

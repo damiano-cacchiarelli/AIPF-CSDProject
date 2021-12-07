@@ -1,7 +1,9 @@
 ﻿using AIPF.MLManager.Modifiers;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AIPF.MLManager
 {
@@ -40,12 +42,9 @@ namespace AIPF.MLManager
                 throw new Exception("The pipeline must be valid");
             
             // Injecting some values inside the modifiers
-            foreach  (var p in linkedPipeline)
+            foreach  (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                if(p.GetModificator() is ITotalNumberRequirement)
-                {
-                    (p.GetModificator() as ITotalNumberRequirement).TotalCount = new List<I>(rawImages).Count;
-                }
+                totalNumberRequirement.TotalCount = new List<I>(rawImages).Count;
             }
             
             IDataView data = mlContext.Data.LoadFromEnumerable(rawImages);
@@ -61,6 +60,31 @@ namespace AIPF.MLManager
                 predictionEngine = mlContext.Model.CreatePredictionEngine<I, O>(model);
 
             return predictionEngine.Predict(imageToPredict);
+        }
+
+        public void EvaluateAll(IDataView processedData)
+        {
+            List<Metric> metrics = new List<Metric>();
+            foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
+            {
+                metrics.Add(evaluable.Evaluate(mlContext, processedData));
+            }
+            Console.WriteLine("\n========= Metrics =========");
+            metrics.ForEach(Console.WriteLine);
+            Console.WriteLine();
+        }
+
+        private List<T> GetTransformersOfPipeline<T>() where T : class
+        {
+            List<T> transformers = new List<T>();
+            foreach (var p in linkedPipeline)
+            {
+                if (p.GetModificator() is T)
+                {
+                    transformers.Add(p.GetModificator() as T);
+                }
+            }
+            return transformers;
         }
 
         public IEnumerable<O> GetEnumerable(IDataView transformedDataView)
