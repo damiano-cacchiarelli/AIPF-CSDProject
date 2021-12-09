@@ -1,4 +1,5 @@
-﻿using AIPF.MLManager.Modifiers;
+﻿using AIPF.MLManager.Metrics;
+using AIPF.MLManager.Modifiers;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using System;
@@ -64,14 +65,15 @@ namespace AIPF.MLManager
 
         public void EvaluateAll(IDataView processedData)
         {
-            List<Metric> metrics = new List<Metric>();
+            List<MetricContainer> metrics = new List<MetricContainer>();
             foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
             {
                 metrics.Add(evaluable.Evaluate(mlContext, processedData));
             }
             Console.WriteLine("\n========= Metrics =========");
             metrics.ForEach(Console.WriteLine);
-            Console.WriteLine();
+            if(metrics.Count == 0) Console.WriteLine("No metrics available");
+            Console.WriteLine("========= ------- =========\n");
         }
 
         private List<T> GetTransformersOfPipeline<T>() where T : class

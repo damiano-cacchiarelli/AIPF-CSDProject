@@ -1,4 +1,5 @@
 ﻿using AIPF.Images;
+using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using System.Collections.Generic;
@@ -29,18 +30,19 @@ namespace AIPF.MLManager.Modifiers
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(OutputImage.Digit), "Label"));
         }
 
-        public Metric Evaluate(MLContext mlContext, IDataView data)
+        public MetricContainer Evaluate(MLContext mlContext, IDataView data)
         {
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            MetricContainer metricContainer = new MetricContainer(nameof(SdcaMaximumEntropy));
+
             MulticlassClassificationMetrics metric = mlContext.MulticlassClassification.Evaluate(data, labelColumnName: defaultMetrics.labelColumnName, scoreColumnName: defaultMetrics.scoreColumnName);
-            dictionary.Add(nameof(metric.MicroAccuracy), metric.MicroAccuracy.ToString());
-            dictionary.Add(nameof(metric.MacroAccuracy), metric.MacroAccuracy.ToString());
-            dictionary.Add(nameof(metric.LogLoss), metric.LogLoss.ToString());
+            metricContainer.AddMetric(new MetricOptions(nameof(metric.MicroAccuracy), metric.MicroAccuracy.ToString()) { IsBetterIfCloserTo = "1" });
+            metricContainer.AddMetric(new MetricOptions(nameof(metric.MacroAccuracy), metric.MacroAccuracy.ToString()) { IsBetterIfCloserTo = "1" });
+            metricContainer.AddMetric(new MetricOptions(nameof(metric.LogLoss), metric.LogLoss.ToString()) { Min = "0", Max = "1", IsBetterIfCloserTo = "0" });
             for (int i = 0; i < metric.PerClassLogLoss.Count; i++)
             {
-                dictionary.Add(nameof(metric.PerClassLogLoss) + i.ToString(), metric.PerClassLogLoss[i].ToString());
-            } 
-            return new Metric(nameof(SdcaMaximumEntropy), dictionary);
+                metricContainer.AddMetric(new MetricOptions(nameof(metric.PerClassLogLoss) + i.ToString(), metric.PerClassLogLoss[i].ToString()) { Min = "0", Max = "1", IsBetterIfCloserTo = "0" });
+            }
+            return metricContainer;
         }
     }
 }
