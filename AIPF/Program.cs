@@ -11,23 +11,23 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            PredictUsingOnePipeline();
+            //PredictUsingVectorPipeline();
+            PredictUsingBitmapPipeline();
+            //PredictUsingMorePipeline();
         }
 
-        static void PredictUsingOnePipeline()
+        static void PredictUsingVectorPipeline()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/optdigits_original_training.txt", 21);
 
-            var mlMaster = new MLManager<RawImage, OutputImage>();
-            mlMaster.CreatePipeline(new ProgressIndicator<RawImage>(@"Process#1"))
+            var mlMaster = new MLManager<VectorRawImage, OutputImage>();
+            mlMaster.CreatePipeline(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                 // Using our custom image resizer
-                .Append(new CustomImageResizer())
-                .Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
-                .Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
+                //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
-                //.Append(new VectorImageResizer())
-                .Append(new SdcaMaximumEntropy(1));
+                .Append(new VectorImageResizer())
+                .Append(new SdcaMaximumEntropy(50));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
@@ -35,9 +35,30 @@ namespace AIPF
             Utils.PrintMetrics(metrics);
 
             // Digit = 6
-            RawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
+            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
-            Utils.PrintPrediction(predictedImage, 6);
+            Utils.PrintPrediction(predictedImage, 0);
+        }
+
+        static void PredictUsingBitmapPipeline()
+        {
+            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            var rawImageDataList = Utils.ReadBitmapFromFile($"{dir}/Data/optdigits_original_training.txt", 21);
+
+            var mlMaster = new MLManager<BitmapRawImage, OutputImage>();
+            mlMaster.CreatePipeline(new ProgressIndicator<BitmapRawImage>(@"Process#1"))
+                .Append(new BitmapResizer())
+                .Append(new SdcaMaximumEntropy(10));
+
+            mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
+
+            var metrics = mlMaster.EvaluateAll();
+            Utils.PrintMetrics(metrics);
+
+            // Digit = 6
+            BitmapRawImage rawImageToPredict = Utils.ReadBitmapFromFile($"{dir}/Data/image_to_predict.txt").First();
+            OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
+            Utils.PrintPrediction(predictedImage, 0);
         }
 
         static void PredictUsingMorePipeline()
@@ -46,8 +67,8 @@ namespace AIPF
             var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/optdigits_original_training.txt", 21);
 
             // Data pre-processing pipeline: 32x32 => 8x8 images (We don't use this pipeline to predict, only to get processed data!!)
-            var preProcessingMlMaster = new MLManager<RawImage, ProcessedImage>();
-            preProcessingMlMaster.CreatePipeline(new ProgressIndicator<RawImage>(@"Process#1_ResizingImage"))
+            var preProcessingMlMaster = new MLManager<VectorRawImage, ProcessedImage>();
+            preProcessingMlMaster.CreatePipeline(new ProgressIndicator<VectorRawImage>(@"Process#1_ResizingImage"))
                 .Append(new CustomImageResizer());
             preProcessingMlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
             transformedDataView.Preview();
@@ -56,8 +77,6 @@ namespace AIPF
             // Train & predict Pipeline
             var mlMaster = new MLManager<ProcessedImage, OutputImage>();
             mlMaster.CreatePipeline(new ProgressPercentageIndicator<ProcessedImage>(@"Process#2"))
-                .Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
-                .Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
                 .Append(new SdcaMaximumEntropy(1));
             mlMaster.Fit(processedImages, out _);
 

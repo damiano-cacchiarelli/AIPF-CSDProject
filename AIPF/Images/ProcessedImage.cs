@@ -3,7 +3,7 @@ using AIPF.MLManager;
 
 namespace AIPF.Images
 {
-    public class ProcessedImage : ICopy<ProcessedImage>
+    public class ProcessedImage : ICopy<ProcessedImage>, IProcessedImage
     {
         [VectorType(64)]
         public float[] Pixels { get; set; }

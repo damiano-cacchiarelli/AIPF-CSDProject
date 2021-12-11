@@ -8,7 +8,7 @@ namespace AIPF
 {
     public class Utils
     {
-        public static List<RawImage> ReadImageFromFile(string path, int skipLine = 0)
+        public static List<VectorRawImage> ReadImageFromFile(string path, int skipLine = 0)
         {
             if (!File.Exists(path))
             {
@@ -16,7 +16,7 @@ namespace AIPF
             }
             Console.WriteLine($"Reading File {path}");
             List<string> lines = new List<string>(File.ReadAllLines(path));
-            List<RawImage> originalImages = new List<RawImage>();
+            List<VectorRawImage> originalImages = new List<VectorRawImage>();
 
             for (int i = skipLine; i < lines.Count; i += 33)
             {
@@ -26,7 +26,31 @@ namespace AIPF
                 {
                     digit = lines[i + 32];
                 }
-                originalImages.Add(new RawImage(lines.GetRange(i, 32), digit));
+                originalImages.Add(new VectorRawImage(lines.GetRange(i, 32), digit));
+            }
+
+            return originalImages;
+        }
+
+        public static List<BitmapRawImage> ReadBitmapFromFile(string path, int skipLine = 0)
+        {
+            if (!File.Exists(path))
+            {
+                throw new Exception($"The file does not exist: {path}");
+            }
+            Console.WriteLine($"Reading File {path}");
+            List<string> lines = new List<string>(File.ReadAllLines(path));
+            List<BitmapRawImage> originalImages = new List<BitmapRawImage>();
+
+            for (int i = skipLine; i < lines.Count; i += 33)
+            {
+                Console.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
+                var digit = "-1";
+                if (lines.Count > i + 32)
+                {
+                    digit = lines[i + 32];
+                }
+                originalImages.Add(new BitmapRawImage(lines.GetRange(i, 32), digit));
             }
 
             return originalImages;

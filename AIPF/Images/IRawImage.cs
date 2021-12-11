@@ -2,10 +2,13 @@
 
 namespace AIPF.Images
 {
-    public interface IRawImage
+    public interface IRawImage<T>
     {
-        [VectorType(32 * 32 * 1)]
-        public float[] Elements { get; set; }
+        public static int Width { get; }
+        
+        public static int Height { get; }
+
+        public T Elements { get; set; }
 
         public byte Digit { get; set; }
     }

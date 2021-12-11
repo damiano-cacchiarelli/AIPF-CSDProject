@@ -5,58 +5,43 @@ using AIPF.Images;
 
 namespace AIPF.MLManager.Modifiers
 {
-    public class CustomImageResizer : AbstractImageResizer
+    public class CustomImageResizer : AbstractImageResizer<VectorRawImage, float[], ProcessedImage>
     {
-        public CustomImageResizer(int originalWidth = 32, int originalHeight = 32, int resizedWidth = 8, int resizedHeight = 8)
-        : base(originalWidth, originalHeight, resizedHeight, resizedWidth, false) { }
 
-        // p = [ t1, t1 ... tn ]
+        public CustomImageResizer(int resizedWidth = 8, int resizedHeight = 8)
+        : base(resizedHeight, resizedWidth, false) { }
+
         public override IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
-            Action<RawImage, ProcessedImage> mapping = (input, output) =>
+            Action<VectorRawImage, ProcessedImage> mapping = (input, output) =>
             {
                 output.Pixels = CustomResize(input);
                 output.Digit = input.Digit;
-                /*
-                Console.Write("\n");
-                foreach (var item in output.Pixels)
-                {
-                    Console.Write(item+",");
-                }
-                Console.Write("\ndigit:"+input.Digit+"\n");
-                */
             };
-            return mlContext.Transforms.CustomMapping(mapping, contractName: null);
-            //.Append(mlContext.Transforms.Conversion.MapValueToKey(outputColumnName: "Label", inputColumnName: nameof(RawImage.Digit)))
-            //.Append(mlContext.Transforms.Concatenate(outputColumnName: "Features", nameof(ProcessedImage.Pixels)));
+            return mlContext.Transforms.CustomMapping(mapping, contractName: null)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey(outputColumnName: "Label", inputColumnName: nameof(VectorRawImage.Digit)))
+                .Append(mlContext.Transforms.Concatenate(outputColumnName: "Features", nameof(ProcessedImage.Pixels)));
         }
 
-        private float[] CustomResize(IRawImage rawImage)
+        private float[] CustomResize(VectorRawImage rawImage)
         {
             List<float> list = new List<float>();
-            for (int j = 0; j < 32; j += 4)
+
+            int magicValueWidth = VectorRawImage.Width / ResizedWidth;
+            int magicValueHeight = VectorRawImage.Height / ResizedHeight;
+
+            for (int j = 0; j < VectorRawImage.Width; j += magicValueWidth)
             {
-                for (int i = 0; i < 32; i += 4)
+                for (int i = 0; i < VectorRawImage.Height; i += magicValueHeight)
                 {
-                    float sum = rawImage.Elements[i + j * 32];
-                    sum += rawImage.Elements[i + 1 + j * 32];
-                    sum += rawImage.Elements[i + 2 + j * 32];
-                    sum += rawImage.Elements[i + 3 + j * 32];
-
-                    sum += rawImage.Elements[i + (j + 1) * 32];
-                    sum += rawImage.Elements[i + 1 + (j + 1) * 32];
-                    sum += rawImage.Elements[i + 2 + (j + 1) * 32];
-                    sum += rawImage.Elements[i + 3 + (j + 1) * 32];
-
-                    sum += rawImage.Elements[i + (j + 2) * 32];
-                    sum += rawImage.Elements[i + 1 + (j + 2) * 32];
-                    sum += rawImage.Elements[i + 2 + (j + 2) * 32];
-                    sum += rawImage.Elements[i + 3 + (j + 2) * 32];
-
-                    sum += rawImage.Elements[i + (j + 3) * 32];
-                    sum += rawImage.Elements[i + 1 + (j + 3) * 32];
-                    sum += rawImage.Elements[i + 2 + (j + 3) * 32];
-                    sum += rawImage.Elements[i + 3 + (j + 3) * 32];
+                    float sum = 0;
+                    for (int x = 0; x < magicValueWidth; x++)
+                    {
+                        for (int y = 0; y < magicValueHeight; y++)
+                        {
+                            sum += rawImage.Elements[i + x + ((j + y) * VectorRawImage.Width)];
+                        }
+                    }
                     list.Add(sum);
                 }
             }

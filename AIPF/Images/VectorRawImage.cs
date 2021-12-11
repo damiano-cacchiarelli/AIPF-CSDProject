@@ -4,16 +4,19 @@ using AIPF.MLManager;
 
 namespace AIPF.Images
 {
-    public class RawImage : IRawImage, ICopy<RawImage>
+    public class VectorRawImage : IRawImage<float[]>, ICopy<VectorRawImage>
     {
+        public static int Width => 32;
+        public static int Height => 32;
+
         [VectorType(32 * 32 * 1)]
         public float[] Elements { get; set; }
 
         public byte Digit { get; set; }
 
-        public RawImage() { }
+        public VectorRawImage() { }
 
-        public RawImage(List<string> charList, string digitLine)
+        public VectorRawImage(List<string> charList, string digitLine)
         {
             ParseToFloatVector(charList);
             ParseToByte(digitLine);
@@ -37,7 +40,7 @@ namespace AIPF.Images
             Digit = (byte)char.GetNumericValue(digitLine.ToCharArray()[1]);
         }
 
-        public void Copy(ref RawImage b)
+        public void Copy(ref VectorRawImage b)
         {
             b.Digit = Digit;
             b.Elements = Elements;
