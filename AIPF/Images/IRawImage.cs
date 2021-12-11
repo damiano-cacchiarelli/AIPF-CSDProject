@@ -1,11 +1,13 @@
 ﻿using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.Image;
+using System.Drawing;
 
 namespace AIPF.Images
 {
     public interface IRawImage
     {
-        [VectorType(32 * 32 * 1)]
-        public float[] Elements { get; set; }
+        [ImageType(32, 32)]
+        public Bitmap Elements { get; set; }
 
         public byte Digit { get; set; }
     }

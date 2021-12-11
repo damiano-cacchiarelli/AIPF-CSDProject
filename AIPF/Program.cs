@@ -12,7 +12,8 @@ namespace AIPF
         static void Main(string[] args)
         {
             //PredictUsingMorePipeline();
-            PredictUsingOnePipeline();
+            //PredictUsingOnePipeline();
+            PredictUsingOnePipelineWithImage();
         }
 
         static void PredictUsingOnePipeline()
@@ -67,6 +68,29 @@ namespace AIPF
 
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 7);
+        }
+
+        static void PredictUsingOnePipelineWithImage()
+        {
+            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/optdigits_original_training_mini.txt", 21);
+
+            var mlMaster = new MLManager<RawImage, OutputImage>();
+            mlMaster.CreatePipeline(new ProgressIndicator<RawImage>(@"Process#1"))
+                // Using our custom image resizer
+                //.Append(new CustomImageResizer())
+                //.Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
+                //.Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
+                // OR using the ml.net default ResizeImages method
+                .Append(new ImageResizer());
+            //.Append(new SdcaMaximumEntropy(1));
+
+            mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
+            transformedDataView.Preview();
+            // Digit = 6
+            RawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
+            OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
+            Utils.PrintPrediction(predictedImage, 6);
         }
     }
 }

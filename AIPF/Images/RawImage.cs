@@ -2,13 +2,15 @@
 using Microsoft.ML.Data;
 using AIPF.MLManager;
 using System;
+using System.Drawing;
+using Microsoft.ML.Transforms.Image;
 
 namespace AIPF.Images
 {
     public class RawImage : IRawImage, ICopy<RawImage>
     {
-        [VectorType(32 * 32 * 3)]
-        public float[] Elements { get; set; }
+        [ImageType(32,32)]
+        public Bitmap Elements { get; set; }
 
         public byte Digit { get; set; }
 
@@ -22,18 +24,24 @@ namespace AIPF.Images
 
         private void ParseToFloatVector(List<string> charList)
         {
-            List<float> list = new List<float>();
+            Bitmap list = new Bitmap(32,32,System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            int x = 0;
+            int y = 0;
             charList.ForEach(row =>
             {
                 foreach (char c in row)
                 {
-                    float color = ((float)char.GetNumericValue(c) * 255);
-                    list.Add(color); // r = 0 / 255
-                    list.Add(color); // g = 0 / 255
-                    list.Add(color); // b = 0 / 255
+   
+                    int color = ((int)char.GetNumericValue(c) * 255);
+                    list.SetPixel(x,y,Color.FromArgb(color, color, color)); // r = 0 / 255
+                    //list.Add(color); // g = 0 / 255
+                    //list.Add(color); // b = 0 / 255
+                    x++;
                 }
+                y++;
+                x = 0;
             });
-            Elements = list.ToArray();
+            Elements = list;
 
             
         }
