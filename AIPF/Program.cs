@@ -31,7 +31,8 @@ namespace AIPF
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
-            mlMaster.EvaluateAll(transformedDataView);
+            var metrics = mlMaster.EvaluateAll();
+            Utils.PrintMetrics(metrics);
 
             // Digit = 6
             RawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();

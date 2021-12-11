@@ -17,7 +17,7 @@
         public override string ToString()
         {
             string toString = $"{Name}: {Value}";
-            toString += IsBetterIfCloserTo != null ? $", is better is closer to { IsBetterIfCloserTo}" : "";
+            toString += IsBetterIfCloserTo != null ? $", is better if closer to { IsBetterIfCloserTo}" : "";
             if (Min != null && Max != null)
             {
                 toString += $" (minimum value = {Min}, maximum value = {Max})";

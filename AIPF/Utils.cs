@@ -1,4 +1,5 @@
 ﻿using AIPF.Images;
+using AIPF.MLManager.Metrics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,6 +45,14 @@ namespace AIPF
             Console.WriteLine($"                                           seven: {predictedImage.Digit[7]:0.####}");
             Console.WriteLine($"                                           eight: {predictedImage.Digit[8]:0.####}");
             Console.WriteLine($"                                           nine:  {predictedImage.Digit[9]:0.####}");
+        }
+
+        public static void PrintMetrics(List<MetricContainer> metrics)
+        {
+            Console.WriteLine("\n========= Metrics =========");
+            metrics.ForEach(Console.WriteLine);
+            if (metrics.Count == 0) Console.WriteLine("No metrics available");
+            Console.WriteLine("========= ------- =========\n");
         }
     }
 }

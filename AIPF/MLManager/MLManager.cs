@@ -12,9 +12,11 @@ namespace AIPF.MLManager
     {
         private readonly MLContext mlContext;
 
+        //Create a Class with this 3 fields
         private IPipeline linkedPipeline;
-        
-        //private IEstimator<ITransformer> pipeline;
+        private IDataView testData = null;
+        private IDataView trainData = null;
+
         private ITransformer model;
         private PredictionEngine<I, O> predictionEngine;
 
@@ -35,7 +37,7 @@ namespace AIPF.MLManager
             linkedPipeline.PrintPipelineStructure();
         }
 
-        public void Fit(IEnumerable<I> rawImages, out IDataView transformedDataView)
+        public void Fit(IEnumerable<I> rawData, out IDataView transformedDataView)
         {
             var pipeline = linkedPipeline.GetPipeline(mlContext);
 
@@ -45,11 +47,16 @@ namespace AIPF.MLManager
             // Injecting some values inside the modifiers
             foreach  (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                totalNumberRequirement.TotalCount = new List<I>(rawImages).Count;
+                totalNumberRequirement.TotalCount = new List<I>(rawData).Count;
             }
+
+            IDataView data = mlContext.Data.LoadFromEnumerable(rawData);
+
+            DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
+            trainData = dataSplit.TrainSet;
+            testData = dataSplit.TestSet;
             
-            IDataView data = mlContext.Data.LoadFromEnumerable(rawImages);
-            model = pipeline.Fit(data);
+            model = pipeline.Fit(trainData);
             transformedDataView = model.Transform(data);
         }
 
@@ -63,17 +70,26 @@ namespace AIPF.MLManager
             return predictionEngine.Predict(imageToPredict);
         }
 
-        public void EvaluateAll(IDataView processedData)
+        public List<MetricContainer> EvaluateAll(IDataView dataView = null)
         {
+            if (model == null)
+                throw new Exception("You first need to define a model (Fit() must be called before)");
+            if ((dataView ??= testData) == null)
+                throw new Exception("Something went wrong during the Fit()!");
+            
+            var testDataView = model.Transform(dataView);
             List<MetricContainer> metrics = new List<MetricContainer>();
             foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
             {
-                metrics.Add(evaluable.Evaluate(mlContext, processedData));
+                metrics.Add(evaluable.Evaluate(mlContext, testDataView));
             }
-            Console.WriteLine("\n========= Metrics =========");
-            metrics.ForEach(Console.WriteLine);
-            if(metrics.Count == 0) Console.WriteLine("No metrics available");
-            Console.WriteLine("========= ------- =========\n");
+            return metrics;
+        }
+
+        public IEnumerable<O> GetEnumerable(IDataView transformedDataView)
+        {
+            return mlContext.Data.CreateEnumerable<O>(transformedDataView,
+                reuseRowObject: true);
         }
 
         private List<T> GetTransformersOfPipeline<T>() where T : class
@@ -87,12 +103,6 @@ namespace AIPF.MLManager
                 }
             }
             return transformers;
-        }
-
-        public IEnumerable<O> GetEnumerable(IDataView transformedDataView)
-        {
-            return mlContext.Data.CreateEnumerable<O>(transformedDataView,
-                reuseRowObject: true);
         }
     }
 }
