@@ -7,12 +7,15 @@
 
   <ItemGroup>
     <Compile Remove="Image\RawImages.cs" />
+    <Compile Remove="MLManager\Evaluable.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Image\NewFile1.txt" />
+    <None Remove="MLManager\Evalu" />
     <None Remove="MLManager\Modifier\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile2.txt" />
+    <None Remove="MLManager\NewFile1.txt" />
     <None Remove="NewFile1.txt" />
   </ItemGroup>
 
