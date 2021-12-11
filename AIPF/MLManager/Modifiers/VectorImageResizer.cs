@@ -16,8 +16,8 @@ namespace AIPF.MLManager.Modifiers
             if (ApplyGrayScale)
                 pipeline = pipeline.Append(mlContext.Transforms.ConvertToGrayscale(outputColumnName: "GrayScaleResizedImage", inputColumnName: "Image"));                
 
-            return pipeline.Append(mlContext.Transforms.ResizeImages(outputColumnName: "ResizedImage", ResizedWidth, ResizedHeight, inputColumnName: ApplyGrayScale ? "GrayScaleResizedImage" : "Image", ResizingKind.Fill))
-                .Append(mlContext.Transforms.ExtractPixels(outputColumnName: nameof(ProcessedImage.Pixels), inputColumnName: "ResizedImage", colorsToExtract: Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits.Blue))
+            return pipeline.Append(mlContext.Transforms.ResizeImages(outputColumnName: "ResizedImage", ResizedWidth, ResizedHeight, inputColumnName: ApplyGrayScale ? "GrayScaleResizedImage" : "Image"))
+                .Append(mlContext.Transforms.ExtractPixels(outputColumnName: nameof(ProcessedImage.Pixels), inputColumnName: "ResizedImage", colorsToExtract: Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator.ColorBits.Red))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey(outputColumnName: "Label", inputColumnName: nameof(RawImage.Digit)))
                 .Append(mlContext.Transforms.Concatenate(outputColumnName: "Features", nameof(ProcessedImage.Pixels)));
 

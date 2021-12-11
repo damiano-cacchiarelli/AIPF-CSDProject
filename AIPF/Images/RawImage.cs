@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.ML.Data;
 using AIPF.MLManager;
+using System;
 
 namespace AIPF.Images
 {
@@ -26,13 +27,15 @@ namespace AIPF.Images
             {
                 foreach (char c in row)
                 {
-                    float color = 255 - ((float)char.GetNumericValue(c) * 255);
+                    float color = ((float)char.GetNumericValue(c) * 255);
                     list.Add(color); // r = 0 / 255
                     list.Add(color); // g = 0 / 255
                     list.Add(color); // b = 0 / 255
                 }
             });
             Elements = list.ToArray();
+
+            
         }
 
         private void ParseToByte(string digitLine)

@@ -18,7 +18,7 @@ namespace AIPF
         static void PredictUsingOnePipeline()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/optdigits_original_training.txt", 21);
+            var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/optdigits_original_training_mini.txt", 21);
 
             var mlMaster = new MLManager<RawImage, OutputImage>();
             mlMaster.CreatePipeline(new ProgressIndicator<RawImage>(@"Process#1"))
@@ -27,8 +27,8 @@ namespace AIPF
                 //.Append(new ConcatenateColumn<ProcessedImage>(nameof(ProcessedImage.Pixels), "Features"))
                 //.Append(new RenameColumn<ProcessedImage>(nameof(ProcessedImage.Digit), "Label"))
                 // OR using the ml.net default ResizeImages method
-                .Append(new VectorImageResizer(applyGrayScale: true))
-                .Append(new SdcaMaximumEntropy(1));
+                .Append(new VectorImageResizer(applyGrayScale: true));
+                //.Append(new SdcaMaximumEntropy(1));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
             transformedDataView.Preview();
