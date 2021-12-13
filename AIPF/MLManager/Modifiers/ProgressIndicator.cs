@@ -1,12 +1,16 @@
 ﻿using Microsoft.ML;
 using System;
+using System.Threading;
 
 namespace AIPF.MLManager.Modifiers
 {
     public class ProgressIndicator<I> : IModifier<I, I>, ITotalNumberRequirement where I : class, ICopy<I>, new()
     {
+        static private readonly object _sync = new object();
+
         protected readonly string processName;
-        public int Processed { get; protected set; }
+        private int processed = 0;
+        public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
 
         public ProgressIndicator(string processName)
@@ -27,8 +31,12 @@ namespace AIPF.MLManager.Modifiers
 
         protected virtual void Log()
         {
-            if (Processed == 0) Console.WriteLine("");
-            Console.WriteLine($"{processName} - Work  in progress... {Processed++} / {TotalCount}");
+            lock (_sync)
+            {
+                if (Processed == 0) Console.WriteLine("");
+                Interlocked.Increment(ref processed);
+                Console.WriteLine($"{processName} - Work  in progress... {Processed} / {TotalCount}");
+            }
         }
     }
 }

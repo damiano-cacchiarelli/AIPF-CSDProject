@@ -23,6 +23,13 @@ namespace AIPF.MLManager
         public MLManager()
         {
             mlContext = new MLContext();
+            mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
+        }
+
+        private void Log(object sender, LoggingEventArgs e)
+        {
+            if(e.Source.Contains("SdcaTrainerBase"))
+                Console.WriteLine(sender.GetType() + " " + e.Message);
         }
 
         public Pipeline<R> CreatePipeline<R>(IModifier<I, R> modifier) where R : class, new()
