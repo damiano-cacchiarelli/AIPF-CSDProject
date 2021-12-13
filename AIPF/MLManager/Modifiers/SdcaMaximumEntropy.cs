@@ -6,9 +6,10 @@ using System.Collections.Generic;
 
 namespace AIPF.MLManager.Modifiers
 {
-    public class SdcaMaximumEntropy : IModifier<ProcessedImage, OutputImage>, IEvaluable
+    public class SdcaMaximumEntropy : IModifier<ProcessedImage, OutputImage>, IEvaluable, ITrainerIterable
     {
-        private int numberOfIteration;
+
+        public int NumberOfIterations { get; }
 
         private dynamic defaultMetrics = new
         {
@@ -18,7 +19,7 @@ namespace AIPF.MLManager.Modifiers
 
         public SdcaMaximumEntropy(int numberOfIteration = 10)
         {
-            this.numberOfIteration = numberOfIteration;
+            NumberOfIterations = numberOfIteration;
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -26,7 +27,7 @@ namespace AIPF.MLManager.Modifiers
             return mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
                 labelColumnName: "Label",
                 featureColumnName: "Features",
-                maximumNumberOfIterations: numberOfIteration)
+                maximumNumberOfIterations: NumberOfIterations)
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(OutputImage.Digit), "Label"));
         }
 

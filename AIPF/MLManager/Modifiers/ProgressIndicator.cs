@@ -1,4 +1,5 @@
-﻿using Microsoft.ML;
+﻿using AIPF.Common;
+using Microsoft.ML;
 using System;
 using System.Threading;
 
@@ -12,10 +13,12 @@ namespace AIPF.MLManager.Modifiers
         private int processed = 0;
         public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
+        protected ConsoleProgress consoleProgress;
 
         public ProgressIndicator(string processName)
         {
             this.processName = processName;
+            consoleProgress = new ConsoleProgress($"{processName} - Work  in progress...");
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -33,9 +36,10 @@ namespace AIPF.MLManager.Modifiers
         {
             lock (_sync)
             {
-                if (Processed == 0) Console.WriteLine("");
+                if (Processed == 0) ConsoleHelper.WriteLine("");
                 Interlocked.Increment(ref processed);
-                Console.WriteLine($"{processName} - Work  in progress... {Processed} / {TotalCount}");
+                consoleProgress.Report((double)Processed / TotalCount);
+                //ConsoleHelper.WriteLine($"{processName} - Work  in progress... {Processed} / {TotalCount}");
             }
         }
     }

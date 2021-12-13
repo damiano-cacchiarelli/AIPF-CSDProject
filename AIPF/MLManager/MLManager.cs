@@ -1,4 +1,5 @@
-﻿using AIPF.MLManager.Metrics;
+﻿using AIPF.Common;
+using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -29,7 +30,7 @@ namespace AIPF.MLManager
         private void Log(object sender, LoggingEventArgs e)
         {
             if(e.Source.Contains("SdcaTrainerBase"))
-                Console.WriteLine(sender.GetType() + " " + e.Message);
+                ConsoleHelper.WriteLine(sender.GetType() + " " + e.Message);
         }
 
         public Pipeline<R> CreatePipeline<R>(IModifier<I, R> modifier) where R : class, new()
@@ -52,9 +53,14 @@ namespace AIPF.MLManager
                 throw new Exception("The pipeline must be valid");
             
             // Injecting some values inside the modifiers
-            foreach  (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
+            var nI = 0;
+            foreach (var trainerIterable in GetTransformersOfPipeline<ITrainerIterable>())
             {
-                totalNumberRequirement.TotalCount = new List<I>(rawData).Count;
+                nI = Math.Max(nI,trainerIterable.NumberOfIterations);
+            }
+            foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
+            {
+                totalNumberRequirement.TotalCount = new List<I>(rawData).Count * nI + 6186;
             }
 
             IDataView data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -62,8 +68,8 @@ namespace AIPF.MLManager
             DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
             trainData = dataSplit.TrainSet;
             testData = dataSplit.TestSet;
-            
-            model = pipeline.Fit(trainData);
+           
+            model = pipeline.Fit(data);
             transformedDataView = model.Transform(data);
         }
 

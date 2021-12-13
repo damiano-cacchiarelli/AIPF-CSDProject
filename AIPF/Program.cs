@@ -11,9 +11,11 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            //PredictUsingVectorPipeline();
-            PredictUsingBitmapPipeline();
+            PredictUsingVectorPipeline();
+            //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
+
+            
         }
 
         static void PredictUsingVectorPipeline()
@@ -27,7 +29,7 @@ namespace AIPF
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
                 .Append(new VectorImageResizer())
-                .Append(new SdcaMaximumEntropy(50));
+                .Append(new SdcaMaximumEntropy(3));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
