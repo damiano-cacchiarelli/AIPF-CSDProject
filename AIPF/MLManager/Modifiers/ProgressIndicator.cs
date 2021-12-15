@@ -18,7 +18,7 @@ namespace AIPF.MLManager.Modifiers
         public ProgressIndicator(string processName)
         {
             this.processName = processName;
-            consoleProgress = new ConsoleProgress($"{processName} - Work  in progress...");
+            consoleProgress = new ConsoleProgress($"{processName} - Work in progress...");
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -40,6 +40,7 @@ namespace AIPF.MLManager.Modifiers
                 Interlocked.Increment(ref processed);
                 consoleProgress.Report((double)Processed / TotalCount);
                 //ConsoleHelper.WriteLine($"{processName} - Work  in progress... {Processed} / {TotalCount}");
+                Console.CursorLeft = 0;
             }
         }
     }

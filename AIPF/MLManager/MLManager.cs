@@ -24,7 +24,7 @@ namespace AIPF.MLManager
         public MLManager()
         {
             mlContext = new MLContext();
-            mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
+            //mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
         }
 
         private void Log(object sender, LoggingEventArgs e)
@@ -60,7 +60,7 @@ namespace AIPF.MLManager
             }
             foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                totalNumberRequirement.TotalCount = new List<I>(rawData).Count * nI + 6186;
+                totalNumberRequirement.TotalCount = (int)(new List<I>(rawData).Count * 0.8 * nI + 7778);
             }
 
             IDataView data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -69,7 +69,7 @@ namespace AIPF.MLManager
             trainData = dataSplit.TrainSet;
             testData = dataSplit.TestSet;
            
-            model = pipeline.Fit(data);
+            model = pipeline.Fit(trainData);
             transformedDataView = model.Transform(data);
         }
 

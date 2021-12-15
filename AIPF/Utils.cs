@@ -4,6 +4,7 @@ using AIPF.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace AIPF
 {
@@ -22,15 +23,16 @@ namespace AIPF
             ConsoleProgress consoleProgress = new ConsoleProgress("Generating Original Image");
             for (int i = skipLine; i < lines.Count; i += 33)
             {
-                consoleProgress.Report((double)i/ lines.Count);
+                consoleProgress.Report((double)i / lines.Count);
                 //ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
-                var digit = "-1";
+                var digit = "10";
                 if (lines.Count > i + 32)
                 {
                     digit = lines[i + 32];
                 }
                 originalImages.Add(new VectorRawImage(lines.GetRange(i, 32), digit));
             }
+            consoleProgress.Report(1);
 
             return originalImages;
         }
@@ -48,7 +50,7 @@ namespace AIPF
             for (int i = skipLine; i < lines.Count; i += 33)
             {
                 ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
-                var digit = "-1";
+                var digit = "10";
                 if (lines.Count > i + 32)
                 {
                     digit = lines[i + 32];
@@ -59,10 +61,10 @@ namespace AIPF
             return originalImages;
         }
 
-        public static void PrintPrediction(OutputImage predictedImage, int digit)
+        public static void PrintPrediction(OutputImage predictedImage, int? digit = null)
         {
             ConsoleHelper.WriteLine("");
-            ConsoleHelper.WriteLine($"Actual: {digit}     Predicted probability:       zero:  {predictedImage.Digit[0]:0.####}");
+            ConsoleHelper.WriteLine($"{(digit != 10 ? "Actual: "+ digit : "")}     Predicted probability:       zero:  {predictedImage.Digit[0]:0.####}");
             ConsoleHelper.WriteLine($"                                           one :  {predictedImage.Digit[1]:0.####}");
             ConsoleHelper.WriteLine($"                                           two:   {predictedImage.Digit[2]:0.####}");
             ConsoleHelper.WriteLine($"                                           three: {predictedImage.Digit[3]:0.####}");
@@ -76,10 +78,8 @@ namespace AIPF
 
         public static void PrintMetrics(List<MetricContainer> metrics)
         {
-            ConsoleHelper.WriteLine("\n========= Metrics =========");
             metrics.ForEach(m => ConsoleHelper.WriteLine(m.ToString()));
             if (metrics.Count == 0) ConsoleHelper.WriteLine("No metrics available");
-            ConsoleHelper.WriteLine("========= ------- =========\n");
         }
     }
 }

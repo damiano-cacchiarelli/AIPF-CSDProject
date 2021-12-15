@@ -4,6 +4,8 @@ using System.Linq;
 using AIPF.MLManager;
 using AIPF.MLManager.Modifiers;
 using AIPF.Images;
+using System;
+using AIPF.Common;
 
 namespace AIPF
 {
@@ -11,11 +13,10 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            PredictUsingVectorPipeline();
+            ExampleMNIST();
+            //PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
-
-            
         }
 
         static void PredictUsingVectorPipeline()
@@ -91,5 +92,108 @@ namespace AIPF
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 7);
         }
+
+        static void ExampleMNIST()
+        {
+
+            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            var mlMaster = new MLManager<VectorRawImage, OutputImage>();
+
+
+            ConsoleHelper.WriteLine(@"       
+                       _____ _____  ______ 
+                 /\   |_   _|  __ \|  ____|
+                /  \    | | | |__) | |__   
+               / /\ \   | | |  ___/|  __|  
+              / ____ \ _| |_| |    | |     
+             /_/    \_\_____|_|    |_|      v1.0
+
+       Cacchiarelli, Cesetti, Romagnoli 17/12/2021
+            ");
+
+            string line = string.Empty;
+            Console.ForegroundColor = ConsoleColor.Green;
+            ConsoleHelper.Write("$ ");
+            Console.CursorTop = ConsoleHelper.NextCursorTop - 1;
+            while ((line = Console.ReadLine()) != null)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.CursorVisible = false;
+                var cmd = line.Split(" ");
+                if (line.StartsWith("$"))
+                    cmd = cmd.Skip(1).ToArray();
+                if (cmd.Length == 0) continue;
+                try
+                {
+                    switch (cmd[0])
+                    {
+                        case "training":
+                            if (cmd.Length != 2)
+                            {
+                                ConsoleHelper.WriteLine("Command not found");
+                                break;
+                            }
+                            //$"{dir}/Data/optdigits_original_training.txt"
+                            var rawImageDataList = Utils.ReadImageFromFile(cmd[1], 21);
+                            mlMaster.CreatePipeline(new ProgressIndicator<VectorRawImage>(@"Sdca Trainer"))
+                                .Append(new VectorImageResizer())
+                                .Append(new SdcaMaximumEntropy(10));
+                            mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
+                            break;
+                        case "predict":
+                            if (cmd.Length != 2)
+                            {
+                                ConsoleHelper.WriteLine("Command not found");
+                                break;
+                            }
+                            //$"{dir}/Data/image_to_predict.txt"
+                            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile(cmd[1]).First();
+                            OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
+                            Utils.PrintPrediction(predictedImage, rawImageToPredict.Digit);
+                            break;
+                        case "metrics":
+                            if (cmd.Length != 1)
+                            {
+                                ConsoleHelper.WriteLine("Command not found");
+                                break;
+                            }
+                            var metrics = mlMaster.EvaluateAll();
+                            Utils.PrintMetrics(metrics);
+                            break;
+                        case "help":
+                            ConsoleHelper.WriteLine(
+                                @"List of commands:
+$ training  <trainingFilePath>  Train the model on the spicific data set;
+$ predict   <fileToPredict>     Predict a value using the created model;
+$ metrics                       Print the metrics of the Machine Learning model;
+$ help                          Print the list of commands;
+$ exit"
+                                );
+                            break;
+                        case "exit":
+                            return;
+                        default:
+                            ConsoleHelper.WriteLine("Command not found");
+                            break;
+                    }
+                    
+                }
+                catch (Exception e)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    ConsoleHelper.WriteLine("ERROR: " + e.Message);
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                ConsoleHelper.Write("$ ");
+                Console.CursorTop = ConsoleHelper.NextCursorTop - 1;
+                Console.CursorVisible = true;
+            }
+
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        
     }
 }

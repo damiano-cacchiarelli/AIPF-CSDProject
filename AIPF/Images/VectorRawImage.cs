@@ -12,7 +12,7 @@ namespace AIPF.Images
         [VectorType(32 * 32 * 1)]
         public float[] Elements { get; set; }
 
-        public byte Digit { get; set; }
+        public byte Digit { get; set; } = 10;
 
         public VectorRawImage() { }
 

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AIPF": {
+      "commandName": "Project",
+      "commandLineArgs": "asd"
+    }
+  }
+}
