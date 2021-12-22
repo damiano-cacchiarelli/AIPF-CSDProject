@@ -1,4 +1,5 @@
-﻿using AIPF.MLManager.Modifiers.Date;
+﻿using AIPF.MLManager.Modifiers;
+using AIPF.MLManager.Modifiers.Date;
 using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace AIPF.Data
 {
-    public abstract class AbstractTaxiFare
+    public abstract class AbstractTaxiFare : ICoordinates
     {
         /*
          
@@ -16,15 +17,15 @@ namespace AIPF.Data
         [LoadColumn(1)]
         public float FareAmount { get; set; }
         [LoadColumn(3)]
-        public float PickupLongitude { get; set; }
+        public float X1 { get; set; }
         [LoadColumn(4)]
-        public float PickupLatitude { get; set; }
+        public float X2 { get; set; }
         [LoadColumn(5)]
-        public float DropoffLongitude { get; set; }
+        public float Y1 { get; set; }
         [LoadColumn(6)]
-        public float DropoffLatitude { get; set; }
+        public float Y2 { get; set; }
         [LoadColumn(7)]
-        public float PassegerCount { get; set; }
+        public float PassengersCount { get; set; }
 
 
 

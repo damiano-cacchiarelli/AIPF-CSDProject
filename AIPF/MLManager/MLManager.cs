@@ -79,6 +79,33 @@ namespace AIPF.MLManager
             transformedDataView = model.Transform(data);
         }
 
+        public void Fit(IDataView rawData, out IDataView transformedDataView)
+        {
+            var pipeline = linkedPipeline.GetPipeline(mlContext);
+
+            if (pipeline == null)
+                throw new Exception("The pipeline must be valid");
+
+            // Injecting some values inside the modifiers
+            var nI = 0;
+            foreach (var trainerIterable in GetTransformersOfPipeline<ITrainerIterable>())
+            {
+                nI = Math.Max(nI, trainerIterable.NumberOfIterations);
+            }
+            foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
+            {
+                totalNumberRequirement.TotalCount = (int)(rawData.GetRowCount() * nI * 0.8);
+            }
+
+            DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(rawData, testFraction: 0.2);
+            trainData = dataSplit.TrainSet;
+            testData = dataSplit.TestSet;
+
+            model = pipeline.Fit(trainData);
+            transformedDataView = model.Transform(rawData);
+        }
+
+
         public O Predict(I imageToPredict)
         {
             if (model == null)

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace AIPF.Data
 {
-    public class RawStringTaxiFare: AbstractTaxiFare, IDateAsString
+    public class RawStringTaxiFare : AbstractTaxiFare, IDateAsString
     {
         /*
          

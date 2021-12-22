@@ -8,6 +8,11 @@ using System;
 using AIPF.Data;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
+using System.Globalization;
+using AIPF.MLManager.Modifiers.Date;
+using AIPF.Models.Taxi;
+using AIPF.MLManager.Modifiers.Maths;
+using AIPF.MLManager.Modifiers.TaxiFare;
 
 namespace AIPF
 {
@@ -21,19 +26,50 @@ namespace AIPF
             TaxiFarePrediction();
             //Example();
 
+           /* DateTime date = DateTime.ParseExact(
+                "Tue, 7 Jan 2020 13:11:23 UTC",
+                "ddd, d MMM yyyy HH:mm:ss UTC",
+                CultureInfo.InvariantCulture);
+            Console.WriteLine(date);
+
+            DateTime date2 = DateTime.ParseExact(
+                "2009-06-15 17:26:21 UTC",
+                "yyyy-MM-dd HH:mm:ss UTC",
+                CultureInfo.InvariantCulture);
+            Console.WriteLine(date2);
+
+            DateTime.TryParseExact("2009-06-15 17:26:21 UTC",
+                                        "yyyy-MM-dd HH:mm:ss UTC",
+                                        CultureInfo.InvariantCulture,
+                                        DateTimeStyles.None, out var parseDate);
+            Console.WriteLine(parseDate);
+            Console.WriteLine(parseDate.Minute + parseDate.Hour * 60);*/
+
         }
 
         private static void TaxiFarePrediction()
         {
 
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            var mlManager = new MLManager<TaxiFareRaw, TaxiFareRaw>();
+            var mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
+
+            mlManager.CreatePipeline(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
+                .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
+                .Append(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
+                .Append(new ApplyOnnxModel<ProcessedTaxiFare, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_linReg.onnx"));
+
             //Load csv data
             var data = mlManager.MlLoader.Load($"{dir}/Data/TaxiFare/train_mini.csv");
-            /*
-            mlManager.CreatePipeline(new ParseDate<TaxiFareRaw>())
-                .Append(new EuclideanDistance<TaxiFareRawWithDatatime>(filtro))*/
-            
+            mlManager.Fit(data, out IDataView transformedDataView);
+            mlManager.Predict(new RawStringTaxiFare()
+            {
+                DateAsString = "2010-01-05 16:52:16 UTC",
+                X1 = - 74016048,
+                X2 = 40711303,
+                Y1 = - 73979268,
+                Y2 = 40782004,
+                PassengersCount =  1
+            }) ;
         }
 
         static void PredictUsingVectorPipeline()
