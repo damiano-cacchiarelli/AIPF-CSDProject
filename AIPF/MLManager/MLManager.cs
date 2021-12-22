@@ -21,10 +21,14 @@ namespace AIPF.MLManager
         private ITransformer model;
         private PredictionEngine<I, O> predictionEngine;
 
+        public MLLoader<I> MlLoader { get; private set; }
+
         public MLManager()
         {
             mlContext = new MLContext();
             mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
+            MlLoader = new MLLoader<I>(this.mlContext);
+
         }
 
         private void Log(object sender, LoggingEventArgs e)
@@ -32,6 +36,8 @@ namespace AIPF.MLManager
             if(e.Source.Contains("SdcaTrainerBase"))
                 ConsoleHelper.WriteLine(sender.GetType() + " " + e.Message);
         }
+
+
 
         public Pipeline<R> CreatePipeline<R>(IModifier<I, R> modifier) where R : class, new()
         {
