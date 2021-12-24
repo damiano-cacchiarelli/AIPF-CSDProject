@@ -6,21 +6,30 @@ using System;
 
 namespace AIPF.MLManager
 {
-    public class Pipeline<T> : IPipeline where T : class, new()
+    public class Pipeline<T, O> : IPipelineBuilder, IPipeline where T : class, new() where O : class, new()
     {
         private readonly IModificator modificator;
+        private readonly IMLBuilder mlBuilder;
         private IPipeline next = null;
 
-        public Pipeline(IModificator modificator)
+        public Pipeline(IModificator modificator, IMLBuilder mlBuilder)
         {
             this.modificator = modificator;
+            this.mlBuilder = mlBuilder;
         }
 
-        public Pipeline<R> Append<R>(IModifier<T, R> modifier) where R : class, new()
+        public Pipeline<R, O> Append<R>(IModifier<T, R> modifier) where R : class, new()
         {
-            var pipeline = new Pipeline<R>(modifier);
+            var pipeline = new Pipeline<R, O>(modifier, mlBuilder);
             next = pipeline;
             return pipeline;
+        }
+
+        public MLBuilder<T, O> Build()
+        {
+            var newMlBuilder = new MLBuilder<T, O>(mlBuilder.MLContext);
+            mlBuilder.Next = newMlBuilder;
+            return newMlBuilder;
         }
 
         public IPipeline GetNext()

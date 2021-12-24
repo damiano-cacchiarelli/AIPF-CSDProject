@@ -19,15 +19,12 @@ namespace AIPF.Data
         [LoadColumn(3)]
         public float X1 { get; set; }
         [LoadColumn(4)]
-        public float X2 { get; set; }
-        [LoadColumn(5)]
         public float Y1 { get; set; }
+        [LoadColumn(5)]
+        public float X2 { get; set; }
         [LoadColumn(6)]
         public float Y2 { get; set; }
         [LoadColumn(7)]
         public float PassengersCount { get; set; }
-
-
-
     }
 }

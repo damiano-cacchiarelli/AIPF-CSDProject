@@ -4,7 +4,9 @@ namespace AIPF.MLManager.Modifiers.Date
 {
     public interface IDateParser<R>
     {
-        public R Date { get; set; }
+        public R Date { get; }
+
+        public void SetDate(R date);
 
         public R ToR(DateTime date)
         {

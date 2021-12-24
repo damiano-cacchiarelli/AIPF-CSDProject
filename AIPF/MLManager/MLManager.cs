@@ -13,13 +13,14 @@ namespace AIPF.MLManager
     {
         private readonly MLContext mlContext;
 
-        //Create a Class with this 3 fields
-        private IPipeline linkedPipeline;
+        private MLBuilder<I, O> mlBuilder;
+
+        //private IPipeline linkedPipeline;
         private IDataView testData = null;
         private IDataView trainData = null;
 
-        private ITransformer model;
-        private PredictionEngine<I, O> predictionEngine;
+        //private ITransformer model;
+        //private PredictionEngine<I, O> predictionEngine;
 
         public MLLoader<I> MlLoader { get; private set; }
 
@@ -28,7 +29,6 @@ namespace AIPF.MLManager
             mlContext = new MLContext();
             mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
             MlLoader = new MLLoader<I>(this.mlContext);
-
         }
 
         private void Log(object sender, LoggingEventArgs e)
@@ -37,84 +37,52 @@ namespace AIPF.MLManager
                 ConsoleHelper.WriteLine(sender.GetType() + " " + e.Message);
         }
 
-
-
-        public Pipeline<R> CreatePipeline<R>(IModifier<I, R> modifier) where R : class, new()
+       public MLBuilder<I, O> CreatePipeline()
         {
-            var pipeline = new Pipeline<R>(modifier);
-            linkedPipeline = pipeline;
-            return pipeline;
-        }
-
-        public void PrintPipelineStructure()
-        {
-            linkedPipeline.PrintPipelineStructure();
+            mlBuilder = new MLBuilder<I, O>(mlContext);
+            return mlBuilder;
         }
 
         public void Fit(IEnumerable<I> rawData, out IDataView transformedDataView)
         {
-            var pipeline = linkedPipeline.GetPipeline(mlContext);
-
-            if (pipeline == null)
-                throw new Exception("The pipeline must be valid");
-            
-            // Injecting some values inside the modifiers
-            var nI = 0;
-            foreach (var trainerIterable in GetTransformersOfPipeline<ITrainerIterable>())
-            {
-                nI = Math.Max(nI,trainerIterable.NumberOfIterations);
-            }
-            foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
-            {
-                totalNumberRequirement.TotalCount = new List<I>(rawData).Count * nI + 6186;
-            }
-
-            IDataView data = mlContext.Data.LoadFromEnumerable(rawData);
-
-            DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
-            trainData = dataSplit.TrainSet;
-            testData = dataSplit.TestSet;
-           
-            model = pipeline.Fit(data);
-            transformedDataView = model.Transform(data);
+            Fit(mlContext.Data.LoadFromEnumerable(rawData), out transformedDataView);
         }
 
         public void Fit(IDataView rawData, out IDataView transformedDataView)
         {
-            var pipeline = linkedPipeline.GetPipeline(mlContext);
-
-            if (pipeline == null)
+            if(mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
-
-            // Injecting some values inside the modifiers
-            var nI = 0;
-            foreach (var trainerIterable in GetTransformersOfPipeline<ITrainerIterable>())
-            {
-                nI = Math.Max(nI, trainerIterable.NumberOfIterations);
-            }
-            foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
-            {
-                totalNumberRequirement.TotalCount = (int)(rawData.GetRowCount() * nI * 0.8);
-            }
 
             DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(rawData, testFraction: 0.2);
             trainData = dataSplit.TrainSet;
             testData = dataSplit.TestSet;
+            transformedDataView = rawData;
 
-            model = pipeline.Fit(trainData);
-            transformedDataView = model.Transform(rawData);
+            foreach (var builder in mlBuilder)
+            {
+                builder.Fit(transformedDataView, out transformedDataView);
+            }
         }
-
 
         public O Predict(I imageToPredict)
         {
-            if (model == null)
-                throw new Exception("You first need to define a model (Fit() must be called before)");
-            if (predictionEngine == null)
-                predictionEngine = mlContext.Model.CreatePredictionEngine<I, O>(model);
+            if (mlBuilder == null)
+                throw new Exception("The pipeline must be valid");
 
-            return predictionEngine.Predict(imageToPredict);
+            try
+            {
+                return mlBuilder.Predict(imageToPredict);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return default(O);
+            }
         }
+
+        /*
+
+
 
         public List<MetricContainer> EvaluateAll(IDataView dataView = null)
         {
@@ -150,5 +118,6 @@ namespace AIPF.MLManager
             }
             return transformers;
         }
+        */
     }
 }

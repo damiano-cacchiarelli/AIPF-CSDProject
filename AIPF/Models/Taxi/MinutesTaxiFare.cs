@@ -1,14 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AIPF.Data;
+﻿using AIPF.Data;
+using AIPF.MLManager;
 using AIPF.MLManager.Modifiers.Date;
 
 namespace AIPF.Models.Taxi 
 {
-    public class MinutesTaxiFare : AbstractTaxiFare, IDateParser<float>
+    public class MinutesTaxiFare : AbstractTaxiFare, IDateParser<float>, ICopy<ProcessedTaxiFare>
     {
-        float IDateParser<float>.Date { get; set; }
+        public float Date { get; set; }
+
+        public void SetDate(float date)
+        {
+            Date = date;
+        }
+
+        public void Copy(ref ProcessedTaxiFare b)
+        {
+            b.Date = Date;
+            b.PassengersCount = PassengersCount;
+        }
     }
     
 }
