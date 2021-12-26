@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
     public interface IAction
     {

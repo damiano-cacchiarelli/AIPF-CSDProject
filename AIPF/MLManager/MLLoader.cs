@@ -1,24 +1,23 @@
 ﻿using AIPF.Data;
 using Microsoft.ML;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AIPF.MLManager
 {
     public class MLLoader<I>
     {
         private readonly MLContext mlContext;
+
         public MLLoader(MLContext mlContext)
         {
             this.mlContext = mlContext;
         }
 
-        public IDataView Load(string path, char separatorChar = ';')
+        public IDataView LoadFile(string path, char separatorChar = ';', bool hasHeader = false)
         {
 
-            var data = this.mlContext.Data.LoadFromTextFile<I>(path, separatorChar: separatorChar, hasHeader: true);
+            return mlContext.Data.LoadFromTextFile<I>(path, separatorChar: separatorChar, hasHeader: hasHeader);
 
+            /*
             IDataView filteredData = mlContext.Data.FilterRowsByColumn(data, nameof(RawStringTaxiFare.PassengersCount), lowerBound: 1, upperBound: 10);
 
             filteredData = mlContext.Data.FilterRowsByMissingValues(filteredData, new[] { 
@@ -32,7 +31,7 @@ namespace AIPF.MLManager
             });
 
             return filteredData;
-
+            */
         }
     }
 }

@@ -1,9 +1,8 @@
 ﻿using Microsoft.ML;
-using System.Collections.Generic;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
-    public interface IMLBuilder : IEnumerable<IMLBuilder>
+    public interface IMLBuilder
     {
         public MLContext MLContext { get; }
         public IMLBuilder Next { get; set; }

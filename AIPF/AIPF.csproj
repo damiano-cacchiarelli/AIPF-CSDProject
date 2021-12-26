@@ -8,16 +8,16 @@
   <ItemGroup>
     <Compile Remove="Image\RawImages.cs" />
     <Compile Remove="MLManager\Evaluable.cs" />
-    <Compile Remove="MLManager\Modifiers\Date\ParseDate - Copia.cs" />
-    <Compile Remove="MLManager\Modifiers\Date\ParseDate2.cs" />
+    <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate - Copia.cs" />
+    <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate2.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Image\NewFile1.txt" />
     <None Remove="MLManager\Evalu" />
-    <None Remove="MLManager\Modifiers\Date\GenericDateParser" />
-    <None Remove="MLManager\Modifiers\Date\IDateParser" />
-    <None Remove="MLManager\Modifiers\Date\NewFile1.txt" />
+    <None Remove="MLManager\Actions\Modifiers\Date\GenericDateParser" />
+    <None Remove="MLManager\Actions\Modifiers\Date\IDateParser" />
+    <None Remove="MLManager\Actions\Modifiers\Date\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile2.txt" />
     <None Remove="MLManager\NewFile1.txt" />

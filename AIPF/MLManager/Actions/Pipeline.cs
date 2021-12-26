@@ -4,9 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
-    public class Pipeline<T, O> : IPipelineBuilder, IPipeline where T : class, new() where O : class, new()
+    public class Pipeline<T, O> : IPipeline where T : class, new() where O : class, new()
     {
         private readonly IModificator modificator;
         private readonly IMLBuilder mlBuilder;
@@ -62,20 +62,6 @@ namespace AIPF.MLManager
             }
             return pipeline;
         }
-
-        /* Another implementation of GetPipeline (using while instead of foreach)
-        public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
-        {
-            var pipeline = modificator.GetPipeline(mlContext);
-            var nextPipeline = next;
-            while(nextPipeline != null)
-            {
-                pipeline = pipeline.Append(nextPipeline.GetModificator().GetPipeline(mlContext));
-                nextPipeline = nextPipeline.GetNext();
-            }
-            return pipeline;
-        }
-        */
 
         public IEnumerator<IPipeline> GetEnumerator()
         {

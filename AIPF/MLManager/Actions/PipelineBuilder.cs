@@ -3,7 +3,7 @@ using Microsoft.ML;
 using System;
 using System.Collections.Generic;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
     public class PipelineBuilder<I, O> : ITransformerAction<I, O> where I : class, new() where O : class, new()
     {

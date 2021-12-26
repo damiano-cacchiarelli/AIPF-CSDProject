@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF.MLManager.Modifiers.Columns
 {
     public class RenameColumn<I> : IModifier<I, I> where I : class, new()
     {

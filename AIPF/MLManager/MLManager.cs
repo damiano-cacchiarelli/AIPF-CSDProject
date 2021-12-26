@@ -1,11 +1,8 @@
 ﻿using AIPF.Common;
-using AIPF.MLManager.Metrics;
-using AIPF.MLManager.Modifiers;
+using AIPF.MLManager.Actions;
 using Microsoft.ML;
-using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AIPF.MLManager
 {
@@ -15,29 +12,25 @@ namespace AIPF.MLManager
 
         private MLBuilder<I, O> mlBuilder;
 
-        //private IPipeline linkedPipeline;
         private IDataView testData = null;
         private IDataView trainData = null;
 
-        //private ITransformer model;
-        //private PredictionEngine<I, O> predictionEngine;
-
-        public MLLoader<I> MlLoader { get; private set; }
+        public MLLoader<I> Loader { get; private set; }
 
         public MLManager()
         {
             mlContext = new MLContext();
             mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
-            MlLoader = new MLLoader<I>(this.mlContext);
+            Loader = new MLLoader<I>(this.mlContext);
         }
 
         private void Log(object sender, LoggingEventArgs e)
         {
-            if(e.Source.Contains("SdcaTrainerBase"))
+            if (e.Source.Contains("SdcaTrainerBase"))
                 ConsoleHelper.WriteLine(sender.GetType() + " " + e.Message);
         }
 
-       public MLBuilder<I, O> CreatePipeline()
+        public MLBuilder<I, O> CreatePipeline()
         {
             mlBuilder = new MLBuilder<I, O>(mlContext);
             return mlBuilder;
@@ -50,18 +43,14 @@ namespace AIPF.MLManager
 
         public void Fit(IDataView rawData, out IDataView transformedDataView)
         {
-            if(mlBuilder == null)
+            if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
             DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(rawData, testFraction: 0.2);
             trainData = dataSplit.TrainSet;
             testData = dataSplit.TestSet;
-            transformedDataView = rawData;
 
-            foreach (var builder in mlBuilder)
-            {
-                builder.Fit(transformedDataView, out transformedDataView);
-            }
+            mlBuilder.Fit(trainData, out transformedDataView);
         }
 
         public O Predict(I imageToPredict)
@@ -76,21 +65,18 @@ namespace AIPF.MLManager
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return default(O);
+                return default;
             }
         }
 
         /*
-
-
-
         public List<MetricContainer> EvaluateAll(IDataView dataView = null)
         {
-            if (model == null)
-                throw new Exception("You first need to define a model (Fit() must be called before)");
+            if (mlBuilder == null)
+                throw new Exception("The pipeline must be valid");
             if ((dataView ??= testData) == null)
                 throw new Exception("Something went wrong during the Fit()!");
-            
+
             var testDataView = model.Transform(dataView);
             List<MetricContainer> metrics = new List<MetricContainer>();
             foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
@@ -99,25 +85,12 @@ namespace AIPF.MLManager
             }
             return metrics;
         }
+        */
 
         public IEnumerable<O> GetEnumerable(IDataView transformedDataView)
         {
             return mlContext.Data.CreateEnumerable<O>(transformedDataView,
                 reuseRowObject: true);
         }
-
-        private List<T> GetTransformersOfPipeline<T>() where T : class
-        {
-            List<T> transformers = new List<T>();
-            foreach (var p in linkedPipeline)
-            {
-                if (p.GetModificator() is T)
-                {
-                    transformers.Add(p.GetModificator() as T);
-                }
-            }
-            return transformers;
-        }
-        */
     }
 }

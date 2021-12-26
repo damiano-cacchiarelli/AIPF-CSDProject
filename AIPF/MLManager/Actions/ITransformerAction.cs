@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
     interface ITransformerAction<I, O> : IAction where I : class, new() where O : class, new()
     {

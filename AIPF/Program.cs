@@ -3,14 +3,14 @@ using System.IO;
 using System.Linq;
 using AIPF.MLManager;
 using AIPF.MLManager.Modifiers;
-using AIPF.Images;
 using System;
 using AIPF.Data;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.Models.Taxi;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
-using System.Collections.Generic;
+using AIPF.MLManager.Modifiers.Columns;
+using AIPF.MLManager.Actions.Filters;
 
 namespace AIPF
 {
@@ -22,36 +22,45 @@ namespace AIPF
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
 
-            //TaxiFarePrediction();
-            Example();
+            TaxiFarePrediction();
         }
 
-        private static void Example()
+        private static void TaxiFarePrediction()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             var mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
             mlManager.CreatePipeline()
+                .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                 .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
                 .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
                 .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
                 .Build()
-                .AddFilter(i => { Console.WriteLine(i.Distance); return i.Distance >= 0 && i.Distance <= 0.5; })
+                .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
                 .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_hubReg.onnx"))
+                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/Data/TaxiFare/Onnx/skl_pca.onnx"))
+                .Append(new DeleteColumn<object>("input"))
+                .Append(new RenameColumn2<object>("variable", "input"))
+                .Append(new DeleteColumn<object>("variable"))
+                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_pca_linReg.onnx"))
                 .Build();
             var data = new RawStringTaxiFare[] { };
             mlManager.Fit(data, out var dataView);
+            dataView.Preview();
             var prediction = mlManager.Predict(new RawStringTaxiFare()
             {
-                DateAsString = "2010-01-05 16:52:16 UTC",
-                X1 = -74.016048f,
-                Y1 = 40.711303f,
-                X2 = -73.979268f,
-                Y2 = 40.782004f,
-                PassengersCount = 1,
-                // FareAmount = 16.9
+                DateAsString = "2011-08-18 00:35:00 UTC",
+                X1 = -73.982738f,
+                Y1 = 40.76127f,
+                X2 = -73.991242f,
+                Y2 = 40.750562f,
+                PassengersCount = 2,
+                // FareAmount = 5.7
             });
-            if(prediction != null) Console.WriteLine(prediction.FareAmount[0]);
+            // hubReg = 6.7486925
+            // linReg = 7.584161
+            // pca_hubReg = 6.7486873
+            // pca_linReg = 7.58416
+            if (prediction != null) Console.WriteLine(prediction.FareAmount[0]);
         }
 
         /**

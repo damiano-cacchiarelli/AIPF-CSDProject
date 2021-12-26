@@ -7,7 +7,7 @@ using Microsoft.ML;
 
 namespace AIPF.MLManager.Modifiers.TaxiFare
 {
-    public class ApplyOnnxModel<I, O> : IModifier<I, O> where I : class, new() where O : class, new()
+    public class ApplyOnnxModel<I, O> : IModifier<I, O>
     {
         private string modelPath;
         private string[] inputColumnNames;

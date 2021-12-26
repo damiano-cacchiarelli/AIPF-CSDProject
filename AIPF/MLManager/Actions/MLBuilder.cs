@@ -1,9 +1,8 @@
 ﻿using Microsoft.ML;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Linq.Expressions;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
     public class MLBuilder<I, O> : IMLBuilder where I : class, new() where O : class, new()
     {
@@ -26,16 +25,14 @@ namespace AIPF.MLManager
             return pipelineBuilder.CreatePipeline(modifier);
         }
 
-        public MLBuilder<I, O> AddFilter(Func<I, bool> filterFunction)
+        public MLBuilder<I, O> AddFilter(Expression<Func<I, bool>> filterFunction)
         {
-            action = new Filter<I>(mlContext, filterFunction);
-            var mlBuilder = new MLBuilder<I, O>(mlContext);
-            Next = mlBuilder;
-            return mlBuilder;
+            return AddFilter(new Filter<I>(filterFunction));
         }
 
         public MLBuilder<I, O> AddFilter(IFilterAction<I> filter)
         {
+            filter.MLContext = mlContext;
             action = filter;
             var mlBuilder = new MLBuilder<I, O>(mlContext);
             Next = mlBuilder;
@@ -44,14 +41,12 @@ namespace AIPF.MLManager
 
         public void Fit(IDataView rawData, out IDataView transformedDataView)
         {
-            /*
-            transformedDataView = null;
-            foreach (var action in Actions)
-            {
-                action.Execute(rawData, out transformedDataView);
-            }*/
             transformedDataView = rawData;
             action?.Execute(rawData, out transformedDataView);
+            if (Next != null)
+            {
+                Next.Fit(transformedDataView, out transformedDataView);
+            }
         }
 
         public object Predict(object toPredict)
@@ -81,26 +76,11 @@ namespace AIPF.MLManager
             {
                 var a = action as IFilterAction<I>;
                 if (!a.ApplyFilter(toPredict))
-                    throw new Exception("The item does not satisfy the filter!");
+                    throw new Exception($"The filter \"{a}\" is not satified!");
                 predicted = toPredict;
             }
 
             return Next.Predict(predicted) as O;
-        }
-
-        public IEnumerator<IMLBuilder> GetEnumerator()
-        {
-            IMLBuilder current = this;
-            while (current != null)
-            {
-                yield return current;
-                current = current.Next;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }
