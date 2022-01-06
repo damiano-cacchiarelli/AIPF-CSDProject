@@ -1,5 +1,7 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.Metrics;
+using Microsoft.ML;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace AIPF.MLManager.Actions.Filters
@@ -62,5 +64,10 @@ namespace AIPF.MLManager.Actions.Filters
             return $"Missing value for field {missingValueFieldName}";
         }
 
+        public List<MetricContainer> Evaluate(IDataView dataView, out IDataView transformedDataView)
+        {
+            Execute(dataView, out transformedDataView);
+            return new List<MetricContainer>();
+        }
     }
 }

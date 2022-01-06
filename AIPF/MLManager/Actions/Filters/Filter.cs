@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 
 namespace AIPF.MLManager.Actions
@@ -34,6 +36,13 @@ namespace AIPF.MLManager.Actions
             expBody = expBody.Replace(paramName + ".", paramTypeName + ".");
            
             return expBody;
+        }
+
+        public List<MetricContainer> Evaluate(IDataView dataView, out IDataView transformedDataView)
+        {
+            Execute(dataView, out transformedDataView);
+            return new List<MetricContainer>();
+            //return list;
         }
     }
 }

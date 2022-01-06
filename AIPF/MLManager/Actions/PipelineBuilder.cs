@@ -1,4 +1,5 @@
-﻿using AIPF.MLManager.Modifiers;
+﻿using AIPF.MLManager.Metrics;
+using AIPF.MLManager.Modifiers;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace AIPF.MLManager.Actions
             }
             foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                totalNumberRequirement.TotalCount = (int)(dataView.GetRowCount()??1 * nI);
+                totalNumberRequirement.TotalCount = (int)((dataView.GetRowCount()??1) * nI);
             }
 
             Model = linkedPipeline.GetPipeline(mlContext).Fit(dataView);
@@ -53,6 +54,19 @@ namespace AIPF.MLManager.Actions
         public O Predict(I toPredict)
         {
             return predictionEngine.Predict(toPredict);
+        }
+
+        public List<MetricContainer> Evaluate(IDataView dataView, out IDataView transformedDataView)
+        {
+            List<MetricContainer> metrics = new List<MetricContainer>();
+            Execute(dataView, out transformedDataView);
+
+            foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
+            {
+                metrics.Add(evaluable.Evaluate(mlContext, transformedDataView));
+            }
+
+            return metrics;
         }
 
         private List<T> GetTransformersOfPipeline<T>() where T : class

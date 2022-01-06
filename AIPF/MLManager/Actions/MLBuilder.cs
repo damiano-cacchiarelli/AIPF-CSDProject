@@ -1,5 +1,7 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.Metrics;
+using Microsoft.ML;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace AIPF.MLManager.Actions
@@ -81,6 +83,25 @@ namespace AIPF.MLManager.Actions
             }
 
             return Next.Predict(predicted) as O;
+        }
+
+        public List<MetricContainer> EvaluateAll(IDataView dataView)
+        {
+            List<MetricContainer> metrics = new List<MetricContainer>();
+            if (action == null) return metrics;
+
+            List<MetricContainer> m = action.Evaluate(dataView, out IDataView transformedDataView);
+            metrics.AddRange(m);
+
+            if (Next != null)
+            {
+                if (transformedDataView == null) 
+                    throw new ArgumentNullException($"The transformation did not ganerate valid data - {action.GetType()}");
+
+                metrics.AddRange(Next.EvaluateAll(transformedDataView));
+            }
+
+            return metrics;
         }
     }
 }

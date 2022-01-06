@@ -1,5 +1,6 @@
 ﻿using AIPF.Common;
 using AIPF.MLManager.Actions;
+using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
@@ -12,15 +13,12 @@ namespace AIPF.MLManager
 
         private MLBuilder<I, O> mlBuilder;
 
-        private IDataView testData = null;
-        private IDataView trainData = null;
-
         public MLLoader<I> Loader { get; private set; }
 
         public MLManager()
         {
             mlContext = new MLContext();
-            mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
+            //mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
             Loader = new MLLoader<I>(this.mlContext);
         }
 
@@ -46,11 +44,7 @@ namespace AIPF.MLManager
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
-            DataOperationsCatalog.TrainTestData dataSplit = mlContext.Data.TrainTestSplit(rawData, testFraction: 0.2);
-            trainData = dataSplit.TrainSet;
-            testData = dataSplit.TestSet;
-
-            mlBuilder.Fit(trainData, out transformedDataView);
+            mlBuilder.Fit(rawData, out transformedDataView);
         }
 
         public O Predict(I imageToPredict)
@@ -69,23 +63,20 @@ namespace AIPF.MLManager
             }
         }
 
-        /*
-        public List<MetricContainer> EvaluateAll(IDataView dataView = null)
+        public List<MetricContainer> EvaluateAll(IEnumerable<I> data)
+        {
+            return EvaluateAll(mlContext.Data.LoadFromEnumerable(data));
+        }
+
+        public List<MetricContainer> EvaluateAll(IDataView dataView)
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
-            if ((dataView ??= testData) == null)
-                throw new Exception("Something went wrong during the Fit()!");
+            if (dataView == null)
+                throw new Exception("You need to pass a data set to test the accurancy of the model!");
 
-            var testDataView = model.Transform(dataView);
-            List<MetricContainer> metrics = new List<MetricContainer>();
-            foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
-            {
-                metrics.Add(evaluable.Evaluate(mlContext, testDataView));
-            }
-            return metrics;
+            return mlBuilder.EvaluateAll(dataView);
         }
-        */
 
         public IEnumerable<O> GetEnumerable(IDataView transformedDataView)
         {

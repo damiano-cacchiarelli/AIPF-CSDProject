@@ -1,4 +1,6 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.Metrics;
+using Microsoft.ML;
+using System.Collections.Generic;
 
 namespace AIPF.MLManager.Actions
 {
@@ -10,5 +12,7 @@ namespace AIPF.MLManager.Actions
         void Fit(IDataView rawData, out IDataView transformedDataView);
 
         public object Predict(object toPredict);
+
+        public List<MetricContainer> EvaluateAll(IDataView dataView);
     }
 }

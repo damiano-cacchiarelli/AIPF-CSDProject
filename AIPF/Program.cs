@@ -18,7 +18,7 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            PredictUsingVectorPipeline();
+            //PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
             TaxiFarePrediction();
@@ -60,7 +60,10 @@ namespace AIPF
             // pca_hubReg = 6.7486873
             // pca_linReg = 7.58416
             if (prediction != null) Console.WriteLine(prediction.FareAmount[0]);
-            
+
+
+            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/Data/TaxiFare/train_mini.csv"));
+
             /*
             var loadedData = new MLContext().Data.CreateEnumerable<RawStringTaxiFare>(mlManager.Loader.LoadFile($"{dir}/Data/TaxiFare/train_mini.csv"),
                 reuseRowObject: true);
@@ -93,9 +96,11 @@ namespace AIPF
             //Utils.PrintMetrics(metrics);
 
             // Digit = 6
-            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
+            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/MNIST/image_to_predict.txt").First();
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 0);
+
+            var metrics = mlMaster.EvaluateAll(new MLContext().Data.LoadFromEnumerable(rawImageDataList));
         }
 
         /*

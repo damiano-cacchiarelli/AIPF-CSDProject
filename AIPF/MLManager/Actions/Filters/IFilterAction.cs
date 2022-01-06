@@ -1,4 +1,6 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.Metrics;
+using Microsoft.ML;
+using System.Collections.Generic;
 
 namespace AIPF.MLManager.Actions
 {
