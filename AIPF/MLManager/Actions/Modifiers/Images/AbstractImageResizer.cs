@@ -1,5 +1,5 @@
-﻿using Microsoft.ML;
-using AIPF.Images;
+﻿using AIPF.Models.Images;
+using Microsoft.ML;
 
 namespace AIPF.MLManager.Modifiers
 {

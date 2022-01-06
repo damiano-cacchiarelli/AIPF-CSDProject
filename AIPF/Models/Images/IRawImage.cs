@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Data;
 
-namespace AIPF.Images
+namespace AIPF.Models.Images
 {
     public interface IRawImage<T>
     {

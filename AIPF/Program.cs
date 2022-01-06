@@ -1,16 +1,16 @@
 ﻿using Microsoft.ML;
 using System.IO;
-using System.Linq;
 using AIPF.MLManager;
 using AIPF.MLManager.Modifiers;
 using System;
-using AIPF.Data;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.Models.Taxi;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Actions.Filters;
+using System.Linq;
+using AIPF.Models.Images;
 
 namespace AIPF
 {
@@ -18,10 +18,9 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
-            //PredictUsingVectorPipeline();
+            PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
-
             TaxiFarePrediction();
         }
 
@@ -61,38 +60,16 @@ namespace AIPF
             // pca_hubReg = 6.7486873
             // pca_linReg = 7.58416
             if (prediction != null) Console.WriteLine(prediction.FareAmount[0]);
-        }
-
-        /**
-        private static void TaxiFarePrediction()
-        {
-
-            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            var mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
-
-            mlManager.CreatePipeline(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute));
-
-
-            mlManager.CreatePipeline(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
-                .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
-                .Append(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_hubReg.onnx"));
-
-            //Load csv data
-            //var data = mlManager.MlLoader.Load($"{dir}/Data/TaxiFare/train_mini.csv");
-            var data = new RawStringTaxiFare[] { };
-            mlManager.Fit(data, out IDataView transformedDataView);
-            var prediction = mlManager.Predict(new RawStringTaxiFare()
+            
+            /*
+            var loadedData = new MLContext().Data.CreateEnumerable<RawStringTaxiFare>(mlManager.Loader.LoadFile($"{dir}/Data/TaxiFare/train_mini.csv"),
+                reuseRowObject: true);
+            foreach (var item in loadedData)
             {
-                DateAsString = "2010-01-05 16:52:16 UTC",
-                X1 = -74.016048f,
-                X2 = 40.711303f,
-                Y1 = -73.979268f,
-                Y2 = 40.782004f,
-                PassengersCount = 1,
-                // FareAmount = 16.9
-            });
-            Console.WriteLine(prediction.FareAmount[0]);
+                var prediction2 = mlManager.Predict(item);
+                if (prediction2 != null) Console.WriteLine($"actual:{item.FareAmount}, prediction:{prediction2.FareAmount[0]}");
+            }
+            */
         }
 
         static void PredictUsingVectorPipeline()
@@ -101,17 +78,19 @@ namespace AIPF
             var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/MNIST/optdigits_original_training.txt", 21);
 
             var mlMaster = new MLManager<VectorRawImage, OutputImage>();
-            mlMaster.CreatePipeline(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+            mlMaster.CreatePipeline()
+                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
                 .Append(new VectorImageResizer())
-                .Append(new SdcaMaximumEntropy(3));
+                .Append(new SdcaMaximumEntropy(3))
+                .Build();
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
-            var metrics = mlMaster.EvaluateAll();
-            Utils.PrintMetrics(metrics);
+            //var metrics = mlMaster.EvaluateAll();
+            //Utils.PrintMetrics(metrics);
 
             // Digit = 6
             VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
@@ -119,6 +98,7 @@ namespace AIPF
             Utils.PrintPrediction(predictedImage, 0);
         }
 
+        /*
         static void PredictUsingBitmapPipeline()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;

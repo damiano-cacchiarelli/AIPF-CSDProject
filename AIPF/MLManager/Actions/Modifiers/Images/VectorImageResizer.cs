@@ -1,6 +1,5 @@
-﻿using Microsoft.ML;
-using AIPF.Images;
-using static Microsoft.ML.Transforms.Image.ImageResizingEstimator;
+﻿using AIPF.Models.Images;
+using Microsoft.ML;
 
 namespace AIPF.MLManager.Modifiers
 {

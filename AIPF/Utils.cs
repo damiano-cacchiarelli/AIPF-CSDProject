@@ -1,9 +1,9 @@
-﻿using AIPF.Images;
-using AIPF.MLManager.Metrics;
+﻿using AIPF.MLManager.Metrics;
 using AIPF.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using AIPF.Models.Images;
 
 namespace AIPF
 {

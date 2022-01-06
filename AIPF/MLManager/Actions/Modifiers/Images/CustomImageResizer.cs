@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using AIPF.Models.Images;
 using Microsoft.ML;
-using AIPF.Images;
 
 namespace AIPF.MLManager.Modifiers
 {

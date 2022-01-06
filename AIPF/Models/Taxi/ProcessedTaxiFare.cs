@@ -1,7 +1,7 @@
 ﻿using AIPF.MLManager.Modifiers.Maths;
 using Microsoft.ML.Data;
 
-namespace AIPF.Data
+namespace AIPF.Models.Taxi
 {
     public class ProcessedTaxiFare : IDistance
     {

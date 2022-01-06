@@ -1,5 +1,4 @@
-﻿using AIPF.Data;
-using Microsoft.ML;
+﻿using Microsoft.ML;
 
 namespace AIPF.MLManager
 {
@@ -12,7 +11,7 @@ namespace AIPF.MLManager
             this.mlContext = mlContext;
         }
 
-        public IDataView LoadFile(string path, char separatorChar = ';', bool hasHeader = false)
+        public IDataView LoadFile(string path, char separatorChar = ',', bool hasHeader = true)
         {
 
             return mlContext.Data.LoadFromTextFile<I>(path, separatorChar: separatorChar, hasHeader: hasHeader);

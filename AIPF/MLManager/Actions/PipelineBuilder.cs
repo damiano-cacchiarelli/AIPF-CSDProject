@@ -42,7 +42,7 @@ namespace AIPF.MLManager.Actions
             }
             foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                totalNumberRequirement.TotalCount = (int)(dataView.GetRowCount() * nI);
+                totalNumberRequirement.TotalCount = (int)(dataView.GetRowCount()??1 * nI);
             }
 
             Model = linkedPipeline.GetPipeline(mlContext).Fit(dataView);

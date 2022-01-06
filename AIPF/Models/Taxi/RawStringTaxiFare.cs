@@ -3,7 +3,7 @@ using AIPF.MLManager.Modifiers.Date;
 using AIPF.Models.Taxi;
 using Microsoft.ML.Data;
 
-namespace AIPF.Data
+namespace AIPF.Models.Taxi
 {
     public class RawStringTaxiFare : AbstractTaxiFare, IDateAsString, ICopy<MinutesTaxiFare>
     {

@@ -1,8 +1,7 @@
-﻿using AIPF.Images;
-using AIPF.MLManager.Metrics;
+﻿using AIPF.MLManager.Metrics;
+using AIPF.Models.Images;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using System.Collections.Generic;
 
 namespace AIPF.MLManager.Modifiers
 {

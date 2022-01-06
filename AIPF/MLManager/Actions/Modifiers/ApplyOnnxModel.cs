@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AIPF.Data;
-using AIPF.Models.Taxi;
-using Microsoft.ML;
+﻿using Microsoft.ML;
 
 namespace AIPF.MLManager.Modifiers.TaxiFare
 {

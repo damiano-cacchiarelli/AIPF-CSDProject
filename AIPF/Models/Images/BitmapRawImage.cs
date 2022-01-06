@@ -4,7 +4,7 @@ using AIPF.MLManager;
 using System.Drawing;
 using Microsoft.ML.Transforms.Image;
 
-namespace AIPF.Images
+namespace AIPF.Models.Images
 {
     public class BitmapRawImage : IRawImage<Bitmap>, ICopy<BitmapRawImage>
     {
