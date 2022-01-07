@@ -47,14 +47,14 @@ namespace AIPF.MLManager
             mlBuilder.Fit(rawData, out transformedDataView);
         }
 
-        public O Predict(I imageToPredict)
+        public O Predict(I toPredict)
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
             try
             {
-                return mlBuilder.Predict(imageToPredict);
+                return mlBuilder.Predict(toPredict);
             }
             catch (Exception e)
             {

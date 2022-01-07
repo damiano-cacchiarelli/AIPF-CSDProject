@@ -28,13 +28,14 @@ namespace AIPF.MLManager.Modifiers.TaxiFare
 
         public MetricContainer Evaluate(MLContext mlContext, IDataView data)
         {
-            var metricContainer = new MetricContainer(algo);
             if (algo != null && algo.Equals("Binary"))
             {
+                var metricContainer = new MetricContainer(algo);
                 var metrics = mlContext.BinaryClassification.Evaluate(data);
                 metricContainer.AddMetric(new MetricOptions(nameof(metrics.F1Score), metrics.F1Score.ToString()));
+                return metricContainer;
             }
-            return metricContainer;
+            return null;
         }
     }
 }

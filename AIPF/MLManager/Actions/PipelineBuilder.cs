@@ -43,7 +43,7 @@ namespace AIPF.MLManager.Actions
             }
             foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                totalNumberRequirement.TotalCount = (int)((dataView.GetRowCount()??1) * nI);
+                totalNumberRequirement.TotalCount = (int)((dataView.GetRowCount() ?? 1) * nI);
             }
 
             Model = linkedPipeline.GetPipeline(mlContext).Fit(dataView);
@@ -63,7 +63,10 @@ namespace AIPF.MLManager.Actions
 
             foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
             {
-                metrics.Add(evaluable.Evaluate(mlContext, transformedDataView));
+                var m = evaluable.Evaluate(mlContext, transformedDataView);
+
+                if (m != null)
+                    metrics.Add(m);
             }
 
             return metrics;
