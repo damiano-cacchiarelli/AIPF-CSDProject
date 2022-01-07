@@ -12,6 +12,7 @@ using AIPF.MLManager.Actions.Filters;
 using System.Linq;
 using AIPF.Models.Images;
 
+
 namespace AIPF
 {
     class Program
@@ -21,8 +22,9 @@ namespace AIPF
             //PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
-            TaxiFarePrediction();
-        }
+            //TaxiFarePrediction();
+            ConsoleExample.TaxiFareExampleConsole();
+        }        
 
         private static void TaxiFarePrediction()
         {
