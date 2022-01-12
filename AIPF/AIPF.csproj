@@ -8,24 +8,32 @@
   <ItemGroup>
     <Compile Remove="Image\RawImages.cs" />
     <Compile Remove="MLManager\Evaluable.cs" />
+    <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate - Copia.cs" />
+    <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate2.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Image\NewFile1.txt" />
     <None Remove="MLManager\Evalu" />
+    <None Remove="MLManager\Actions\Modifiers\Date\GenericDateParser" />
+    <None Remove="MLManager\Actions\Modifiers\Date\IDateParser" />
+    <None Remove="MLManager\Actions\Modifiers\Date\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile2.txt" />
     <None Remove="MLManager\NewFile1.txt" />
+    <None Remove="Models\Taxi\NewFile1.txt" />
     <None Remove="NewFile1.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="1.6.0" />
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.10.0" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
+    <Folder Include="Data\TaxiFare\" />
   </ItemGroup>
 
 </Project>
