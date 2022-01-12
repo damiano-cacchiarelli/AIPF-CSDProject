@@ -5,5 +5,9 @@
     <RootNamespace>AIPF_WebApp</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AIPF\AIPF.csproj" />
+  </ItemGroup>
+
 
 </Project>
