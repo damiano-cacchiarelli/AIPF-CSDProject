@@ -52,15 +52,8 @@ namespace AIPF.MLManager
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
-            try
-            {
-                return mlBuilder.Predict(toPredict);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return default;
-            }
+            return mlBuilder.Predict(toPredict);
+
         }
 
         public List<MetricContainer> EvaluateAll(IEnumerable<I> data)

@@ -27,23 +27,6 @@ namespace AIPF
         public static void TaxiFareExampleConsole()
         {
 
-            /*
-                        AnsiConsole.Write(
-                            new FigletText("AIPF")
-                                .Centered()
-                                .Color(Color.Cyan2));*/
-            /*AnsiConsole.WriteLine(@"       
-                       _____ _____  ______ 
-                 /\   |_   _|  __ \|  ____|
-                /  \    | | | |__) | |__   
-               / /\ \   | | |  ___/|  __|  
-              / ____ \ _| |_| |    | |     
-             /_/    \_\_____|_|    |_|      v1.1
-       Cacchiarelli, Cesetti, Romagnoli 17/12/2021
-            ");*/
-
-            //AnsiConsole.Markup("[bold]bold[/] [underline]underline[/] [invert]invert[/]");
-
             string line = string.Empty;
             while (!line.Equals("exit"))
             {
@@ -53,7 +36,7 @@ namespace AIPF
                 {
                     switch (line)
                     {
-                        case "train":
+                        case "fit":
                             train(mlManager);
                             AnsiConsole.WriteLine();
                             break;
@@ -88,7 +71,7 @@ namespace AIPF
 
         private static string defaultText()
         {
-            var commands = new string[] { "train", "predict", "metrics", "exit" };
+            var commands = new string[] { "fit", "predict", "metrics", "exit" };
 
             AnsiConsole.Write(
                 new FigletText("AIPF")
@@ -187,7 +170,7 @@ namespace AIPF
             table.AddColumn("Dropoff longitude");
             table.AddColumn("Dropoff latitude");
             table.AddColumn("Passenger count");
-            table.AddColumn("Fare amount");
+            table.AddColumn("[red]Fare amount[/]");
 
 
             var predictedValue = mlManager.Predict(toPredict);
@@ -200,7 +183,7 @@ namespace AIPF
                 dropoff_longitude.ToString(),
                 dropoff_latitude.ToString(),
                 passenger_count.ToString(),
-                predictedValue.FareAmount[0].ToString()
+                $"[red]{predictedValue.FareAmount[0]}[/]"
             };
 
             table.AddRow(values);
