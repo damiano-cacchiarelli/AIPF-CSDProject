@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AIPF.Data;
 using Microsoft.ML;
 
 namespace AIPF.MLManager.Modifiers.Maths
 {
-    public class EuclideanDistance<I, O> : IModifier<I, O> where I : class, ICoordinates, new() where O : class, IDistance, new()
+    public class EuclideanDistance<I, O> : IModifier<I, O> where I : class, ICoordinates, ICopy<O>, new() where O : class, IDistance, new()
     {
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
@@ -15,6 +12,7 @@ namespace AIPF.MLManager.Modifiers.Maths
 
         private void CaluclateEuclideanDistance(I input, O output)
         {
+            input.Copy(ref output);
             output.Distance = (float) Math.Sqrt(Math.Pow(input.X1 - input.X2, 2) + Math.Pow(input.Y1 - input.Y2, 2));
         }
     }

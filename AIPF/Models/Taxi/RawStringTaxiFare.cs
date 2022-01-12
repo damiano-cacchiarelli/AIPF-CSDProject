@@ -1,12 +1,11 @@
-﻿using AIPF.MLManager.Modifiers.Date;
+﻿using AIPF.MLManager;
+using AIPF.MLManager.Modifiers.Date;
+using AIPF.Models.Taxi;
 using Microsoft.ML.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace AIPF.Data
+namespace AIPF.Models.Taxi
 {
-    public class RawStringTaxiFare : AbstractTaxiFare, IDateAsString
+    public class RawStringTaxiFare : AbstractTaxiFare, IDateAsString, ICopy<MinutesTaxiFare>
     {
         /*
          
@@ -17,7 +16,14 @@ namespace AIPF.Data
         [LoadColumn(2)]
         public string DateAsString { get; set; }
 
-
-
+        public void Copy(ref MinutesTaxiFare b)
+        {
+            b.FareAmount = FareAmount;
+            b.X1 = X1;
+            b.X2 = X2;
+            b.Y1 = Y1;
+            b.Y2 = Y2;
+            b.PassengersCount = PassengersCount;
+        }
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.ML.Data;
 using AIPF.MLManager;
 
-namespace AIPF.Images
+namespace AIPF.Models.Images
 {
     public class VectorRawImage : IRawImage<float[]>, ICopy<VectorRawImage>
     {

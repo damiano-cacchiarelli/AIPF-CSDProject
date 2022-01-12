@@ -7,7 +7,7 @@ using System.Text;
 
 namespace AIPF.MLManager.Modifiers.Date
 {
-    public class GenericDateParser<I, R, O> : IModifier<I, O> where I : class, IDateAsString, new() where O : class, IDateParser<R>, new()
+    public class GenericDateParser<I, R, O> : IModifier<I, O> where I : class, IDateAsString, ICopy<O>, new() where O : class, IDateParser<R>, new()
     {
         private string dateFormat;
         private Func<DateTime, R> function;
@@ -17,6 +17,7 @@ namespace AIPF.MLManager.Modifiers.Date
             this.dateFormat = dateTimeFormat;
             this.function = function;
         }
+
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
             return mlContext.Transforms.CustomMapping<I, O>(ParsingDate, null);
@@ -24,6 +25,8 @@ namespace AIPF.MLManager.Modifiers.Date
 
         private void ParsingDate(I input, O output)
         {
+            input.Copy(ref output);
+
             if (DateTime.TryParseExact(input.DateAsString,
                                         dateFormat,
                                         CultureInfo.InvariantCulture,
@@ -31,11 +34,11 @@ namespace AIPF.MLManager.Modifiers.Date
             {
                 if(function == null)
                 {
-                    output.Date = output.ToR(parseDate);
+                    output.SetDate(output.ToR(parseDate));
                 }
                 else
                 {
-                    output.Date = function.Invoke(parseDate);
+                    output.SetDate(function.Invoke(parseDate));
                 }
                
             }

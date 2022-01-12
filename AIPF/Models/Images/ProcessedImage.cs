@@ -1,7 +1,7 @@
 ﻿using Microsoft.ML.Data;
 using AIPF.MLManager;
 
-namespace AIPF.Images
+namespace AIPF.Models.Images
 {
     public class ProcessedImage : ICopy<ProcessedImage>, IProcessedImage
     {

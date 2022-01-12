@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AIPF.Data;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
 
 namespace AIPF.Models.Taxi
 {

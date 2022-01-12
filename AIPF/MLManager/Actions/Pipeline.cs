@@ -4,23 +4,32 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
-    public class Pipeline<T> : IPipeline where T : class, new()
+    public class Pipeline<T, O> : IPipeline where T : class, new() where O : class, new()
     {
         private readonly IModificator modificator;
+        private readonly IMLBuilder mlBuilder;
         private IPipeline next = null;
 
-        public Pipeline(IModificator modificator)
+        public Pipeline(IModificator modificator, IMLBuilder mlBuilder)
         {
             this.modificator = modificator;
+            this.mlBuilder = mlBuilder;
         }
 
-        public Pipeline<R> Append<R>(IModifier<T, R> modifier) where R : class, new()
+        public Pipeline<R, O> Append<R>(IModifier<T, R> modifier) where R : class, new()
         {
-            var pipeline = new Pipeline<R>(modifier);
+            var pipeline = new Pipeline<R, O>(modifier, mlBuilder);
             next = pipeline;
             return pipeline;
+        }
+
+        public MLBuilder<T, O> Build()
+        {
+            var newMlBuilder = new MLBuilder<T, O>(mlBuilder.MLContext);
+            mlBuilder.Next = newMlBuilder;
+            return newMlBuilder;
         }
 
         public IPipeline GetNext()
@@ -53,20 +62,6 @@ namespace AIPF.MLManager
             }
             return pipeline;
         }
-
-        /* Another implementation of GetPipeline (using while instead of foreach)
-        public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
-        {
-            var pipeline = modificator.GetPipeline(mlContext);
-            var nextPipeline = next;
-            while(nextPipeline != null)
-            {
-                pipeline = pipeline.Append(nextPipeline.GetModificator().GetPipeline(mlContext));
-                nextPipeline = nextPipeline.GetNext();
-            }
-            return pipeline;
-        }
-        */
 
         public IEnumerator<IPipeline> GetEnumerator()
         {

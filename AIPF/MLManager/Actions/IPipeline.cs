@@ -2,7 +2,7 @@
 using Microsoft.ML;
 using System.Collections.Generic;
 
-namespace AIPF.MLManager
+namespace AIPF.MLManager.Actions
 {
     public interface IPipeline : IEnumerable<IPipeline>
     {

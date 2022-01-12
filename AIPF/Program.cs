@@ -1,18 +1,16 @@
 ﻿using Microsoft.ML;
 using System.IO;
-using System.Linq;
 using AIPF.MLManager;
 using AIPF.MLManager.Modifiers;
-using AIPF.Images;
 using System;
-using AIPF.Data;
-using Microsoft.ML.Transforms;
-using System.Collections.Generic;
-using System.Globalization;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.Models.Taxi;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
+using AIPF.MLManager.Modifiers.Columns;
+using AIPF.MLManager.Actions.Filters;
+using System.Linq;
+using AIPF.Models.Images;
 
 namespace AIPF
 {
@@ -24,52 +22,57 @@ namespace AIPF
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
             TaxiFarePrediction();
-            //Example();
-
-           /* DateTime date = DateTime.ParseExact(
-                "Tue, 7 Jan 2020 13:11:23 UTC",
-                "ddd, d MMM yyyy HH:mm:ss UTC",
-                CultureInfo.InvariantCulture);
-            Console.WriteLine(date);
-
-            DateTime date2 = DateTime.ParseExact(
-                "2009-06-15 17:26:21 UTC",
-                "yyyy-MM-dd HH:mm:ss UTC",
-                CultureInfo.InvariantCulture);
-            Console.WriteLine(date2);
-
-            DateTime.TryParseExact("2009-06-15 17:26:21 UTC",
-                                        "yyyy-MM-dd HH:mm:ss UTC",
-                                        CultureInfo.InvariantCulture,
-                                        DateTimeStyles.None, out var parseDate);
-            Console.WriteLine(parseDate);
-            Console.WriteLine(parseDate.Minute + parseDate.Hour * 60);*/
-
         }
 
         private static void TaxiFarePrediction()
         {
-
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             var mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
-
-            mlManager.CreatePipeline(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
+            mlManager.CreatePipeline()
+                .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
+                .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
+                .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
                 .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
-                .Append(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_linReg.onnx"));
-
-            //Load csv data
-            var data = mlManager.MlLoader.Load($"{dir}/Data/TaxiFare/train_mini.csv");
-            mlManager.Fit(data, out IDataView transformedDataView);
-            mlManager.Predict(new RawStringTaxiFare()
+                .Build()
+                .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
+                .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
+                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/Data/TaxiFare/Onnx/skl_pca.onnx"))
+                .Append(new DeleteColumn<object>("input"))
+                .Append(new RenameColumn2<object>("variable", "input"))
+                .Append(new DeleteColumn<object>("variable"))
+                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_pca_linReg.onnx"))
+                .Build();
+            var data = new RawStringTaxiFare[] { };
+            mlManager.Fit(data, out var dataView);
+            dataView.Preview();
+            var prediction = mlManager.Predict(new RawStringTaxiFare()
             {
-                DateAsString = "2010-01-05 16:52:16 UTC",
-                X1 = - 74016048,
-                X2 = 40711303,
-                Y1 = - 73979268,
-                Y2 = 40782004,
-                PassengersCount =  1
-            }) ;
+                DateAsString = "2011-08-18 00:35:00 UTC",
+                X1 = -73.982738f,
+                Y1 = 40.76127f,
+                X2 = -73.991242f,
+                Y2 = 40.750562f,
+                PassengersCount = 2,
+                // FareAmount = 5.7
+            });
+            // hubReg = 6.7486925
+            // linReg = 7.584161
+            // pca_hubReg = 6.7486873
+            // pca_linReg = 7.58416
+            if (prediction != null) Console.WriteLine(prediction.FareAmount[0]);
+
+
+            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/Data/TaxiFare/train_mini.csv"));
+
+            /*
+            var loadedData = new MLContext().Data.CreateEnumerable<RawStringTaxiFare>(mlManager.Loader.LoadFile($"{dir}/Data/TaxiFare/train_mini.csv"),
+                reuseRowObject: true);
+            foreach (var item in loadedData)
+            {
+                var prediction2 = mlManager.Predict(item);
+                if (prediction2 != null) Console.WriteLine($"actual:{item.FareAmount}, prediction:{prediction2.FareAmount[0]}");
+            }
+            */
         }
 
         static void PredictUsingVectorPipeline()
@@ -78,24 +81,29 @@ namespace AIPF
             var rawImageDataList = Utils.ReadImageFromFile($"{dir}/Data/MNIST/optdigits_original_training.txt", 21);
 
             var mlMaster = new MLManager<VectorRawImage, OutputImage>();
-            mlMaster.CreatePipeline(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+            mlMaster.CreatePipeline()
+                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
                 .Append(new VectorImageResizer())
-                .Append(new SdcaMaximumEntropy(3));
+                .Append(new SdcaMaximumEntropy(3))
+                .Build();
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
-            var metrics = mlMaster.EvaluateAll();
-            Utils.PrintMetrics(metrics);
+            //var metrics = mlMaster.EvaluateAll();
+            //Utils.PrintMetrics(metrics);
 
             // Digit = 6
-            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/image_to_predict.txt").First();
+            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/Data/MNIST/image_to_predict.txt").First();
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 0);
+
+            var metrics = mlMaster.EvaluateAll(new MLContext().Data.LoadFromEnumerable(rawImageDataList));
         }
 
+        /*
         static void PredictUsingBitmapPipeline()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -104,7 +112,7 @@ namespace AIPF
             var mlMaster = new MLManager<BitmapRawImage, OutputImage>();
             mlMaster.CreatePipeline(new ProgressIndicator<BitmapRawImage>(@"Process#1"))
                 .Append(new BitmapResizer())
-                .Append(new SdcaMaximumEntropy(10));
+                .Append(new SdcaMaximumEntropy(100));
 
             mlMaster.Fit(rawImageDataList, out IDataView transformedDataView);
 
@@ -112,7 +120,7 @@ namespace AIPF
             Utils.PrintMetrics(metrics);
 
             // Digit = 6
-            BitmapRawImage rawImageToPredict = Utils.ReadBitmapFromFile($"{dir}/Data/image_to_predict.txt").First();
+            BitmapRawImage rawImageToPredict = Utils.ReadBitmapFromFile($"{dir}/Data/MNIST/image_to_predict.txt").First();
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 0);
         }
@@ -145,115 +153,6 @@ namespace AIPF
             OutputImage predictedImage = mlMaster.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 7);
         }
-
-        //-------------------------------------------------------------------------------
-
-        // This example shows how to define and apply a custom mapping of input
-        // columns to output columns with a contract name. The contract name is
-        // used in the CustomMappingFactoryAttribute that decorates the custom
-        // mapping action. The pipeline containing the custom mapping can then be
-        // saved to disk, and it can be loaded back after the assembly containing
-        // the custom mapping action is registered.
-        public static void Example()
-        {
-            // Create a new ML context, for ML.NET operations. It can be used for
-            // exception tracking and logging, as well as the source of randomness.
-            var mlContext = new MLContext();
-
-            // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            var samples = new List<InputData>
-            {
-                new InputData { Age = 26, Asd = "1213" },
-                new InputData { Age = 35, Asd = "456456" },
-                new InputData { Age = 34, Asd = "6" },
-                new InputData { Age = 28, Asd = "8" },
-            };
-            var data = mlContext.Data.LoadFromEnumerable(samples);
-
-            // Custom transformations can be used to transform data directly, or as
-            // part of a pipeline of estimators. The contractName must be provided
-            // in order for a pipeline containing a CustomMapping estimator to be
-            // saved and loaded back. The contractName must be the same as in the
-            // CustomMappingFactoryAttribute used to decorate the custom action
-            // defined by the user.
-            var pipeline = mlContext.Transforms.CustomMapping(new
-                IsUnderThirtyCustomAction().GetMapping(), contractName:
-                "IsUnderThirty");
-
-            var transformer = pipeline.Fit(data);
-
-            // To save and load the CustomMapping estimator, the assembly in which
-            // the custom action is defined needs to be registered in the
-            // environment. The following registers the assembly where
-            // IsUnderThirtyCustomAction is defined.    
-            // This is necessary only in versions v1.5-preview2 and earlier
-            mlContext.ComponentCatalog.RegisterAssembly(typeof(
-                IsUnderThirtyCustomAction).Assembly);
-
-            // Now the transform pipeline can be saved and loaded through the usual
-            // MLContext method. 
-            mlContext.Model.Save(transformer, data.Schema, "customTransform.zip");
-            var loadedTransform = mlContext.Model.Load("customTransform.zip", out
-                var inputSchema);
-
-            // Now we can transform the data and look at the output to confirm the
-            // behavior of the estimator. This operation doesn't actually evaluate
-            // data until we read the data below.
-            var transformedData = loadedTransform.Transform(data);
-
-            var dataEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(
-                transformedData, reuseRowObject: true);
-
-            Console.WriteLine("Age\tIsUnderThirty");
-            foreach (var row in dataEnumerable)
-                Console.WriteLine($"\t {row.IsUnderThirty}\t {row.Asd}");
-
-            // Expected output:
-            // Age      IsUnderThirty
-            // 26       True
-            // 35       False
-            // 34       False
-            // 28       True
-        }
-
-        // The custom action needs to implement the abstract class
-        // CustomMappingFactory, and needs to have attribute
-        // CustomMappingFactoryAttribute with argument equal to the contractName
-        // used to define the CustomMapping estimator which uses the action.
-        [CustomMappingFactoryAttribute("IsUnderThirty")]
-        private class IsUnderThirtyCustomAction : CustomMappingFactory<InputData,
-            CustomMappingOutput>
-        {
-            // We define the custom mapping between input and output rows that will
-            // be applied by the transformation.
-            public static void CustomAction(InputData input, CustomMappingOutput
-                output) => output.IsUnderThirty = input.Age < 30;
-
-            public override Action<InputData, CustomMappingOutput> GetMapping()
-                => CustomAction;
-        }
-
-        // Defines only the column to be generated by the custom mapping
-        // transformation in addition to the columns already present.
-        private class CustomMappingOutput
-        {
-            public bool IsUnderThirty { get; set; }
-        }
-
-        // Defines the schema of the input data.
-        private class InputData
-        {
-            public float Age { get; set; }
-            public string Asd { get; set; }
-        }
-
-        // Defines the schema of the transformed data, which includes the new column
-        // IsUnderThirty.
-        private class TransformedData
-        {
-            public bool IsUnderThirty { get; set; }
-            public string Asd { get; set; }
-        }
-
+        */
     }
 }
