@@ -1,7 +1,6 @@
 ﻿using Microsoft.ML;
 using System.IO;
 using AIPF.MLManager;
-using AIPF.MLManager.Modifiers;
 using System;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.Models.Taxi;
@@ -11,6 +10,13 @@ using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Actions.Filters;
 using System.Linq;
 using AIPF.Models.Images;
+using System.Dynamic;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using Microsoft.ML.Data;
+using AIPF.MLManager.Actions;
+using System.Reflection;
+using AIPF.MLManager.Modifiers;
 
 namespace AIPF
 {
@@ -18,10 +24,150 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
+            DynamicIdataview();
+            //dynClass();
+
             //PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
-            TaxiFarePrediction();
+            //TaxiFarePrediction();
+        }
+
+        public static void DynamicIdataview()
+        {
+            var properties = new List<DynamicTypeProperty>()
+                {
+                    new DynamicTypeProperty("FareAmount", typeof(float)),
+                    new DynamicTypeProperty("X1", typeof(float)),
+                    new DynamicTypeProperty("Y1", typeof(float)),
+                    new DynamicTypeProperty("X2", typeof(float)),
+                    new DynamicTypeProperty("Y2", typeof(float)),
+                    new DynamicTypeProperty("PassengersCount", typeof(float))
+                };
+
+            // create the new type
+            var dynamicType = DynamicType.CreateDynamicType(properties, typeof(ICoordinates));//, typeof(ICopy<>)
+            var schema = SchemaDefinition.Create(dynamicType);
+
+
+            var dynamicList = DynamicType.CreateDynamicList(dynamicType);
+
+            // get an action that will add to the list
+            var addAction = DynamicType.GetAddAction(dynamicList);
+
+            // call the action, with an object[] containing parameters in exact order added
+            addAction.Invoke(new object[] { 5.7f, -73.982738f, 40.76127f, -73.991242f, 40.750562f, 2f });
+            // call add action again for each row.
+
+            var mlContext = new MLContext();
+            var dataType = mlContext.Data.GetType();
+            var loadMethodGeneric = dataType.GetMethods().First(method => method.Name == "LoadFromEnumerable" && method.IsGenericMethod);
+            var loadMethod = loadMethodGeneric.MakeGenericMethod(dynamicType);
+            var trainData = (IDataView)loadMethod.Invoke(mlContext.Data, new[] { dynamicList, schema });
+            trainData.Preview();
+
+            Func<object, bool> func = i =>
+            {
+                dynamic f = i;
+                return f.PassengersCount > 2;
+            };
+
+            var mapType = typeof(CustomMappingCatalog);
+            var loadMethodGeneric2 = mapType.GetMethods().First(method => method.Name == "FilterByCustomPredicate" && method.IsGenericMethod);
+            var loadMethod2 = loadMethodGeneric2.MakeGenericMethod(dynamicType);
+            var filteredData = (IDataView)loadMethod2.Invoke(mlContext.Data, new object[] { mlContext.Data, trainData, func });
+            filteredData.Preview();
+
+            // new MLManager<dynamicType, dynamicType>
+            var mlManType = typeof(MLManager<,>);
+            Type[] typeArgs = { dynamicType, dynamicType };
+            var makeme = mlManType.MakeGenericType(typeArgs); // MLManager<dynamicType, dynamicType>
+            object o = Activator.CreateInstance(makeme); // o = new MLManager<dynamicType, dynamicType>()
+            MethodInfo myMethod = makeme.GetMethod("CreatePipeline");
+            var mlbuilder = myMethod.Invoke(o, new object[] { }); // mlManager.CreatePipeline()
+
+            //mlManager.CreatePipeline().AddFilter(expression);
+            var mlBuiType = mlbuilder.GetType();
+            var loadMethodGeneric4 = mlBuiType.GetMethods().First(method => method.Name == "AddFilter");
+
+            var parameter = Expression.Parameter(dynamicType, "i");
+            var memberExpression = Expression.Property(parameter, "PassengersCount");
+            var gte = Expression.GreaterThanOrEqual(memberExpression, Expression.Constant(1f));
+            var lte = Expression.LessThanOrEqual(memberExpression, Expression.Constant(10f));
+            var lambdaExpression = Expression.Lambda(Expression.AndAlso(gte, lte), parameter); // i => i.PassengersCount >= 1 && i.PassengersCount <= 10
+
+            var mlbuilder2 = loadMethodGeneric4.Invoke(mlbuilder, new object[] { lambdaExpression });
+
+
+            //mlManager....AddTransformer(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
+            var mlTranType = typeof(EuclideanDistance<,>);
+            var makemetran = mlTranType.MakeGenericType(typeArgs);
+            object tran = Activator.CreateInstance(makemetran); // tran = EuclideanDistance
+
+            var loadMethodGeneric5 = mlBuiType.GetMethods().First(method => method.Name == "AddTransformer");
+            var loadMethod5 = loadMethodGeneric5.MakeGenericMethod(dynamicType);
+            var mlbuilder3 = loadMethod5.Invoke(mlContext.Data, new[] { tran });
+
+            MethodInfo fitMethod = makeme.GetMethods().First(m => m.Name == "Fit" && m.GetParameters()[0].ParameterType == typeof(IDataView));
+            IDataView tr = null;
+            var parameters = new object[] { trainData, tr };
+            fitMethod.Invoke(o, parameters); // mlManager.CreatePipeline()
+
+            var transformedDataView = (IDataView)parameters[1];
+            transformedDataView.Preview();
+            
+
+            /*
+            var mlManager = new MLManager<object, object>();
+
+            Func<object, bool> func = i =>
+            {
+                dynamic f = i;
+                Console.WriteLine("cioqa");
+                //return (int)GetPropValue(i, "b") > 10;
+                return true;
+            };
+            Expression<Func<object, bool>> expression = i => func(i);
+            mlManager.CreatePipeline().AddFilter(expression);
+
+            mlManager.Fit(trainData, out IDataView tr);
+            tr.Preview();
+            */
+        }
+
+        public static void dynClass()
+        {
+
+            dynamic e = new DynamicClass(new List<Field>() { new Field("a", typeof(string)), new Field("b", typeof(int)) });
+            e.a = "ciao";
+            e.b = 4;
+            /*
+            var d1 = typeof(MLManager<,>);
+            Type[] typeArgs = { typeof(DynamicClass), typeof(DynamicClass) };
+            var makeme = d1.MakeGenericType(typeArgs);
+            object o = Activator.CreateInstance(makeme);
+            */
+
+            var mlManager = new MLManager<DynamicClass, DynamicClass>();
+
+            Func<DynamicClass, bool> func = i =>
+            {
+                dynamic f = i;
+                Console.WriteLine("cioqa");
+                return (int)GetPropValue(i, "b") > 10;
+            };
+            Expression<Func<DynamicClass, bool>> expression = i => func(i);
+
+            mlManager.CreatePipeline().AddFilter(expression);
+
+            var l = new DynamicClass[] { e };
+            mlManager.Fit(l, out IDataView b);
+            b.Preview();
+        }
+
+        public static object GetPropValue(object src, string propName)
+        {
+            return src.GetType().GetProperty(propName).GetValue(src, null);
         }
 
         private static void TaxiFarePrediction()
