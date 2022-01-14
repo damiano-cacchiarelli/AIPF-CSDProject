@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
+using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.Date;
@@ -13,6 +15,7 @@ using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF.Models.Images;
 using AIPF.Models.Taxi;
+using Microsoft.ML;
 
 namespace AIPF_WebApp.Models
 {
@@ -23,7 +26,7 @@ namespace AIPF_WebApp.Models
 
         public MLService()
         {
-            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).FullName + "/AIPF";
 
             taxiFareMlManager.CreatePipeline()
                 .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
@@ -55,16 +58,64 @@ namespace AIPF_WebApp.Models
             switch (fitBody.ModelName)
             {
                 case "taxifare":
-                    Console.WriteLine((IEnumerable<RawStringTaxiFare>)fitBody.Data);
-                    taxiFareMlManager.Fit((IEnumerable<RawStringTaxiFare>)fitBody.Data, out var _);
+                    var list1 = CastListObject<RawStringTaxiFare>(fitBody.Data);
+                    taxiFareMlManager.Fit(list1, out var _);
                     break;
                 case "MNIST":
-                    mnistMlManager.Fit(fitBody.Data as IEnumerable<VectorRawImage>, out var _);
+                    var list2 = CastListObject<VectorRawImage>(fitBody.Data);
+                    mnistMlManager.Fit(list2, out var _);
                     break;
                 default:
                     throw new ArgumentException("Model name not found");
             }
         }
 
+        public object Predict(string modelName, JsonElement value)
+        {
+            switch (modelName)
+            {
+                case "taxifare":
+                    RawStringTaxiFare obj =
+                        JsonSerializer.Deserialize<RawStringTaxiFare>(value.GetRawText());
+                    return taxiFareMlManager.Predict(obj);
+                case "MNIST":
+                    VectorRawImage obj2 =
+                        JsonSerializer.Deserialize<VectorRawImage>(value.GetRawText());
+                    return mnistMlManager.Predict(obj2);
+                default:
+                    throw new ArgumentException("Model name not found");
+            }
+        }
+
+        public List<MetricContainer> Metrics (FitBody fitBody)
+        {
+            switch (fitBody.ModelName)
+            {
+                case "taxifare":
+                    var list1 = CastListObject<RawStringTaxiFare>(fitBody.Data);
+                    return taxiFareMlManager.EvaluateAll(list1);
+                case "MNIST":
+                    var list2 = CastListObject<VectorRawImage>(fitBody.Data);
+                    return mnistMlManager.EvaluateAll(list2);
+                default:
+                    throw new ArgumentException("Model name not found");
+            }
+        }
+
+        private List<T> CastListObject<T>(IList<JsonElement> values)
+        {
+            var list = new List<T>();
+            foreach (var e in values)
+            {
+                T obj = JsonSerializer.Deserialize<T>(e.GetRawText());
+                list.Add(obj);
+            }
+            return list;
+        }
+
+        private T CastObject<T>(object value)
+        {
+            return (T)value;
+        }
     }
 }
