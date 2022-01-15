@@ -1,7 +1,8 @@
-﻿using AIPF.Models.Images;
+﻿using AIPF.MLManager;
+using AIPF_Console.MNIST_example.Model;
 using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF_Console.MNIST_example.Modifiers
 {
     public abstract class AbstractImageResizer<I, T, O> : IModifier<I, O> where I : class, IRawImage<T>, new() where O : class, IProcessedImage, new()
     {

@@ -1,9 +1,11 @@
-﻿using AIPF.MLManager.Metrics;
-using AIPF.Models.Images;
+﻿using AIPF.MLManager;
+using AIPF.MLManager.Metrics;
+using AIPF.MLManager.Modifiers;
+using AIPF_Console.MNIST_example.Model;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF_Console.MNIST_example.Modifiers
 {
     public class SdcaMaximumEntropy : IModifier<ProcessedImage, OutputImage>, IEvaluable, ITrainerIterable
     {

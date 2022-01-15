@@ -1,5 +1,4 @@
-﻿using AIPF.Common;
-using AIPF.MLManager.Actions;
+﻿using AIPF.MLManager.Actions;
 using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using System;
@@ -24,8 +23,8 @@ namespace AIPF.MLManager
 
         private void Log(object sender, LoggingEventArgs e)
         {
-            if (e.Source.Contains("SdcaTrainerBase"))
-                ConsoleHelper.WriteLine(sender.GetType() + " " + e.Message);
+            //if (e.Source.Contains("SdcaTrainerBase"))
+                //ConsoleHelper.WriteLine(sender.GetType() + " " + e.Message);
         }
 
         public MLBuilder<I, O> CreatePipeline()

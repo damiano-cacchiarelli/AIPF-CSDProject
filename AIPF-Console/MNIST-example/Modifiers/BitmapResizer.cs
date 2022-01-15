@@ -1,8 +1,8 @@
-﻿using AIPF.Models.Images;
+﻿using AIPF_Console.MNIST_example.Model;
 using Microsoft.ML;
 using System.Drawing;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF_Console.MNIST_example.Modifiers
 {
     public class BitmapResizer : AbstractImageResizer<BitmapRawImage, Bitmap, ProcessedImage>
     {

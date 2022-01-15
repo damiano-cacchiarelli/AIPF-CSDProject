@@ -6,4 +6,16 @@
     <RootNamespace>AIPF_Console</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AIPF\AIPF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TaxiFare-example\Modifiers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.43.0" />
+  </ItemGroup>
+
 </Project>

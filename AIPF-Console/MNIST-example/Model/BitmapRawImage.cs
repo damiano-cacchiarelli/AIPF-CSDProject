@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using Microsoft.ML.Data;
 using AIPF.MLManager;
 using System.Drawing;
 using Microsoft.ML.Transforms.Image;
 
-namespace AIPF.Models.Images
+namespace AIPF_Console.MNIST_example.Model
 {
     public class BitmapRawImage : IRawImage<Bitmap>, ICopy<BitmapRawImage>
     {

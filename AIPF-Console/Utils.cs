@@ -1,11 +1,10 @@
 ﻿using AIPF.MLManager.Metrics;
-using AIPF.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using AIPF.Models.Images;
+using AIPF_Console.MNIST_example.Model;
 
-namespace AIPF
+namespace AIPF_Console
 {
     public class Utils
     {
@@ -15,14 +14,14 @@ namespace AIPF
             {
                 throw new Exception($"The file does not exist: {path}");
             }
-            ConsoleHelper.WriteLine($"Reading File {path}");
+            //ConsoleHelper.WriteLine($"Reading File {path}");
             List<string> lines = new List<string>(File.ReadAllLines(path));
             List<VectorRawImage> originalImages = new List<VectorRawImage>();
 
-            ConsoleProgress consoleProgress = new ConsoleProgress("Generating Original Image");
+            //ConsoleProgress consoleProgress = new ConsoleProgress("Generating Original Image");
             for (int i = skipLine; i < lines.Count; i += 33)
             {
-                consoleProgress.Report((double)i/ lines.Count);
+                //consoleProgress.Report((double)i/ lines.Count);
                 //ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
                 var digit = "-1";
                 if (lines.Count > i + 32)
@@ -41,13 +40,13 @@ namespace AIPF
             {
                 throw new Exception($"The file does not exist: {path}");
             }
-            ConsoleHelper.WriteLine($"Reading File {path}");
+            //ConsoleHelper.WriteLine($"Reading File {path}");
             List<string> lines = new List<string>(File.ReadAllLines(path));
             List<BitmapRawImage> originalImages = new List<BitmapRawImage>();
 
             for (int i = skipLine; i < lines.Count; i += 33)
             {
-                ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
+                //ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
                 var digit = "-1";
                 if (lines.Count > i + 32)
                 {
@@ -58,7 +57,7 @@ namespace AIPF
 
             return originalImages;
         }
-
+        /*
         public static void PrintPrediction(OutputImage predictedImage, int digit)
         {
             ConsoleHelper.WriteLine("");
@@ -80,6 +79,6 @@ namespace AIPF
             metrics.ForEach(m => ConsoleHelper.WriteLine(m.ToString()));
             if (metrics.Count == 0) ConsoleHelper.WriteLine("No metrics available");
             ConsoleHelper.WriteLine("========= ------- =========\n");
-        }
+        }*/
     }
 }

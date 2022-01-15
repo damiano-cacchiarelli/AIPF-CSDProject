@@ -4,13 +4,11 @@ using AIPF.MLManager;
 using AIPF.MLManager.Modifiers;
 using System;
 using AIPF.MLManager.Modifiers.Date;
-using AIPF.Models.Taxi;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Actions.Filters;
 using System.Linq;
-using AIPF.Models.Images;
 
 namespace AIPF
 {
@@ -18,12 +16,14 @@ namespace AIPF
     {
         static void Main(string[] args)
         {
+
+            
             //PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
-            TaxiFarePrediction();
+            //TaxiFarePrediction();
         }
-
+/*
         private static void TaxiFarePrediction()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -73,8 +73,8 @@ namespace AIPF
                 if (prediction2 != null) Console.WriteLine($"actual:{item.FareAmount}, prediction:{prediction2.FareAmount[0]}");
             }
             */
-        }
-
+//        }*/
+/*
         static void PredictUsingVectorPipeline()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -102,6 +102,7 @@ namespace AIPF
 
             var metrics = mlMaster.EvaluateAll(new MLContext().Data.LoadFromEnumerable(rawImageDataList));
         }
+*/
 
         /*
         static void PredictUsingBitmapPipeline()

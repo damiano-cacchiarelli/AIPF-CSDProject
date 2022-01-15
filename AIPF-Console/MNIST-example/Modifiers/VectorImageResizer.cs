@@ -1,7 +1,7 @@
-﻿using AIPF.Models.Images;
+﻿using AIPF_Console.MNIST_example.Model;
 using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF_Console.MNIST_example.Modifiers
 {
     public class VectorImageResizer : AbstractImageResizer<VectorRawImage, float[], ProcessedImage>
     {
