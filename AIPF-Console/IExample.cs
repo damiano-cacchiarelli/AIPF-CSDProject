@@ -7,11 +7,13 @@ namespace AIPF_Console
 {
     public interface IExample
     {
-        public void train();
+        public string GetName();
 
-        public void predict();
+        public void Train();
 
-        public void metrics();
+        public void Predict();
+
+        public void Metrics();
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using AIPF.Models.Taxi;
+﻿using AIPF_Console.MNIST_example;
 using AIPF_Console.TaxiFare_example;
 using Spectre.Console;
 using System;
@@ -10,27 +10,31 @@ namespace AIPF_Console
 
         static void Main(string[] args)
         {
-            var e = TaxiFare.Start();
-
+            IExample example = null;
             string line = string.Empty;
+
             while (!line.Equals("exit"))
             {
-                line = defaultText();
+                if (example == null) {
+                 example = SelectExample();
+                    if (example == null) continue;
+                }
+                line = DefaultText(example);
 
                 try
                 {
                     switch (line)
                     {
                         case "fit":
-                            e.train();
+                            example.Train();
                             AnsiConsole.WriteLine();
                             break;
                         case "predict":
-                            e.predict();
+                            example.Predict();
                             AnsiConsole.WriteLine();
                             break;
                         case "metrics":
-                            e.metrics();
+                            example.Metrics();
                             AnsiConsole.WriteLine();
                             break;
                         case "exit":
@@ -54,12 +58,35 @@ namespace AIPF_Console
             }
         }
 
-        private static string defaultText()
+        private static IExample SelectExample()
+        {
+            var commands = new string[] { "mnist", "taxi-fare" };
+
+            var command = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select the command you what to do")
+                    .PageSize(commands.Length + 1)
+                    .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
+                    .AddChoices(commands));
+            switch (command)
+            {
+                case "mnist":
+                    return Mnist.Start();
+                case "taxi-fare":
+                    return TaxiFare.Start();
+                default:
+                    AnsiConsole.WriteLine("[red]Command not found![/]");
+                    return null;
+            }
+            
+        }
+
+        private static string DefaultText(IExample example)
         {
             var commands = new string[] { "fit", "predict", "metrics", "exit" };
 
             AnsiConsole.Write(
-                new FigletText("AIPF")
+                new FigletText("AIPF - " + example.GetName())
                     .Centered()
                     .Color(Color.Blue));
             AnsiConsole.Write(new Rule("[bold white]Cacchiarelli, Cesetti, Romagnoli 10/01/2022[/]").RuleStyle("blue").Centered());

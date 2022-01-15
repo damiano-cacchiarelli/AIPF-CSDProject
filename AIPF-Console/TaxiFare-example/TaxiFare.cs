@@ -22,13 +22,23 @@ namespace AIPF_Console.TaxiFare_example
 
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
 
+        protected TaxiFare() 
+        {
+
+        }
+
         public static IExample Start()
         {
             return new TaxiFare();
             
         }
 
-        public void train()
+        public string GetName()
+        {
+            return "Taxi-Fare";
+        }
+
+        public void Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
             mlManager.CreatePipeline()
@@ -81,7 +91,7 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public void predict()
+        public void Predict()
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -131,9 +141,9 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.Write(table);
         }
 
-        public void metrics()
+        public void Metrics()
         {
-            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/Data/train_mini.csv"));
+            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/TaxiFare-example/Data/train_mini.csv"));
             if (metrics.Count == 0 || true)
             {
                 AnsiConsole.WriteLine("No available metrics.");

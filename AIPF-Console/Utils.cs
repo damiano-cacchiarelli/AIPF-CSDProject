@@ -1,8 +1,8 @@
-﻿using AIPF.MLManager.Metrics;
+﻿using AIPF_Console.MNIST_example.Model;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using AIPF_Console.MNIST_example.Model;
 
 namespace AIPF_Console
 {
@@ -57,28 +57,20 @@ namespace AIPF_Console
 
             return originalImages;
         }
-        /*
+
         public static void PrintPrediction(OutputImage predictedImage, int digit)
         {
-            ConsoleHelper.WriteLine("");
-            ConsoleHelper.WriteLine($"Actual: {digit}     Predicted probability:       zero:  {predictedImage.Digit[0]:0.####}");
-            ConsoleHelper.WriteLine($"                                           one :  {predictedImage.Digit[1]:0.####}");
-            ConsoleHelper.WriteLine($"                                           two:   {predictedImage.Digit[2]:0.####}");
-            ConsoleHelper.WriteLine($"                                           three: {predictedImage.Digit[3]:0.####}");
-            ConsoleHelper.WriteLine($"                                           four:  {predictedImage.Digit[4]:0.####}");
-            ConsoleHelper.WriteLine($"                                           five:  {predictedImage.Digit[5]:0.####}");
-            ConsoleHelper.WriteLine($"                                           six:   {predictedImage.Digit[6]:0.####}");
-            ConsoleHelper.WriteLine($"                                           seven: {predictedImage.Digit[7]:0.####}");
-            ConsoleHelper.WriteLine($"                                           eight: {predictedImage.Digit[8]:0.####}");
-            ConsoleHelper.WriteLine($"                                           nine:  {predictedImage.Digit[9]:0.####}");
+            AnsiConsole.WriteLine("");
+            AnsiConsole.WriteLine($"Actual: {digit}     Predicted probability:       zero:  {predictedImage.Digit[0]:0.####}");
+            AnsiConsole.WriteLine($"                                           one :  {predictedImage.Digit[1]:0.####}");
+            AnsiConsole.WriteLine($"                                           two:   {predictedImage.Digit[2]:0.####}");
+            AnsiConsole.WriteLine($"                                           three: {predictedImage.Digit[3]:0.####}");
+            AnsiConsole.WriteLine($"                                           four:  {predictedImage.Digit[4]:0.####}");
+            AnsiConsole.WriteLine($"                                           five:  {predictedImage.Digit[5]:0.####}");
+            AnsiConsole.WriteLine($"                                           six:   {predictedImage.Digit[6]:0.####}");
+            AnsiConsole.WriteLine($"                                           seven: {predictedImage.Digit[7]:0.####}");
+            AnsiConsole.WriteLine($"                                           eight: {predictedImage.Digit[8]:0.####}");
+            AnsiConsole.WriteLine($"                                           nine:  {predictedImage.Digit[9]:0.####}");
         }
-
-        public static void PrintMetrics(List<MetricContainer> metrics)
-        {
-            ConsoleHelper.WriteLine("\n========= Metrics =========");
-            metrics.ForEach(m => ConsoleHelper.WriteLine(m.ToString()));
-            if (metrics.Count == 0) ConsoleHelper.WriteLine("No metrics available");
-            ConsoleHelper.WriteLine("========= ------- =========\n");
-        }*/
     }
 }
