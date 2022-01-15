@@ -14,4 +14,9 @@
     <PackageReference Include="coverlet.collector" Version="3.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AIPF-Console\AIPF-Console.csproj" />
+    <ProjectReference Include="..\AIPF\AIPF.csproj" />
+  </ItemGroup>
+
 </Project>
