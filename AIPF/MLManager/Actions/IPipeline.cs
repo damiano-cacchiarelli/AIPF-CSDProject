@@ -12,6 +12,6 @@ namespace AIPF.MLManager.Actions
 
         IEstimator<ITransformer> GetPipeline(MLContext mlContext);
 
-        void PrintPipelineStructure();
+        //void PrintPipelineStructure();
     }
 }

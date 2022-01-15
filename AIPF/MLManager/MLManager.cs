@@ -11,6 +11,7 @@ namespace AIPF.MLManager
         private readonly MLContext mlContext;
 
         private MLBuilder<I, O> mlBuilder;
+        private bool trained = false;
 
         public MLLoader<I> Loader { get; private set; }
 
@@ -44,22 +45,27 @@ namespace AIPF.MLManager
                 throw new Exception("The pipeline must be valid");
 
             mlBuilder.Fit(rawData, out transformedDataView);
+            trained = true;
         }
 
         public O Predict(I toPredict)
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
+            if (!trained)
+                throw new Exception("You must call Fit() before Predict()!");
+            if (toPredict == null)
+                throw new Exception("You must pass a valid item!");
 
-            try
-            {
+            //try
+            // {
                 return mlBuilder.Predict(toPredict);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return default;
-            }
+            //}
+            //catch (Exception e)
+            // {
+            //    Console.WriteLine(e.Message);
+            //    return default;
+            //}
         }
 
         public List<MetricContainer> EvaluateAll(IEnumerable<I> data)
@@ -73,6 +79,8 @@ namespace AIPF.MLManager
                 throw new Exception("The pipeline must be valid");
             if (dataView == null)
                 throw new Exception("You need to pass a data set to test the accurancy of the model!");
+            if (!trained)
+                throw new Exception("You must call Fit() before EvaluateAll()!");
 
             return mlBuilder.EvaluateAll(dataView);
         }

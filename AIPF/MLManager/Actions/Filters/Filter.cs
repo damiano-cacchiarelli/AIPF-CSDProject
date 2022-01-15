@@ -18,7 +18,7 @@ namespace AIPF.MLManager.Actions
 
         public virtual void Execute(IDataView dataView, out IDataView trasformedDataView)
         {
-            trasformedDataView = MLContext.Data.FilterByCustomPredicate<I>(dataView, ApplyFilter);
+            trasformedDataView = MLContext.Data.FilterByCustomPredicate<I>(dataView, i => !ApplyFilter(i));
         }
 
         public bool ApplyFilter(I item)
@@ -42,7 +42,6 @@ namespace AIPF.MLManager.Actions
         {
             Execute(dataView, out transformedDataView);
             return new List<MetricContainer>();
-            //return list;
         }
     }
 }

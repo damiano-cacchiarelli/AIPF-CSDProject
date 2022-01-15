@@ -20,6 +20,9 @@ namespace AIPF.MLManager.Actions
 
         public Pipeline<R, O> Append<R>(IModifier<T, R> modifier) where R : class, new()
         {
+            if (modifier == null) 
+                throw new Exception("The modificator cannot be null!");
+            
             var pipeline = new Pipeline<R, O>(modifier, mlBuilder);
             next = pipeline;
             return pipeline;
@@ -42,6 +45,7 @@ namespace AIPF.MLManager.Actions
             return modificator;
         }
 
+        /*
         public void PrintPipelineStructure()
         {
             int index = 1;
@@ -50,6 +54,17 @@ namespace AIPF.MLManager.Actions
                 Console.WriteLine($"{index++} - { p.GetModificator().GetType() }");
             }
             Console.WriteLine("");
+        }
+        */
+
+        public int GetModifierCount()
+        {
+            int index = 0;
+            foreach (var p in this)
+            {
+                index++;
+            }
+            return index;
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)

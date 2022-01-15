@@ -28,13 +28,18 @@ namespace AIPF.MLManager.Actions
             return pipeline;
         }
 
+        /*
         public void PrintPipelineStructure()
         {
             linkedPipeline.PrintPipelineStructure();
         }
+        */
 
         public void Execute(IDataView dataView, out IDataView trasformedDataView)
         {
+            if (linkedPipeline == null) 
+                throw new Exception("You must create a pipeline before");
+
             // Injecting some values inside the modifiers
             var nI = 0;
             foreach (var trainerIterable in GetTransformersOfPipeline<ITrainerIterable>())
@@ -53,6 +58,9 @@ namespace AIPF.MLManager.Actions
 
         public O Predict(I toPredict)
         {
+            if (predictionEngine == null)
+                throw new Exception("You must create and execute a pipeline before");
+
             return predictionEngine.Predict(toPredict);
         }
 
