@@ -90,7 +90,7 @@ namespace AIPF_Console.RobotLoccioni_example
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
 
             var datetime = AnsiConsole.Ask<string>("Insert the datetime (must be of the format YYYY-MM-DD hh:mm:ss.nnn) ", "2019-07-10 20:50:53.247");
-            var maxCurrentAxis1 = AnsiConsole.Ask<float>("Insert the max current axis 1 ", 1.812f);
+            var maxCurrentAxis1 = AnsiConsole.Ask("Insert the max current axis 1 ", 1.812f);
             var maxCurrentAxis2 = AnsiConsole.Ask<float>("Insert the max current axis 2 ", 10.042f);
             var maxCurrentAxis3 = AnsiConsole.Ask<float>("Insert the max current axis 3 ", 4.116f);
             var maxCurrentAxis4 = AnsiConsole.Ask<float>("Insert the max current axis 4 ", 1.248f);
@@ -105,35 +105,35 @@ namespace AIPF_Console.RobotLoccioni_example
 
             var toPredict = new RobotData()
             {
-                DateAsString = "2019-07-10 20:50:53.247",
-                MaxCurrentAxis1 = 1.812f,
-                MaxCurrentAxis2 = 10.042f,
-                MaxCurrentAxis3 = 4.116f,
-                MaxCurrentAxis4 = 1.248f,
-                MaxCurrentAxis5 = 1.504f,
-                MaxCurrentAxis6 = 0.853f,
-                RMSCurrentAxis1 = 1.282f,
-                RMSCurrentAxis2 = 7.101f,
-                RMSCurrentAxis3 = 2.911f,
-                RMSCurrentAxis4 = 0.882f,
-                RMSCurrentAxis5 = 1.064f,
-                RMSCurrentAxis6 = 0.603f,
+                DateAsString = datetime,
+                MaxCurrentAxis1 = maxCurrentAxis1,
+                MaxCurrentAxis2 = maxCurrentAxis2,
+                MaxCurrentAxis3 = maxCurrentAxis3,
+                MaxCurrentAxis4 = maxCurrentAxis4,
+                MaxCurrentAxis5 = maxCurrentAxis5,
+                MaxCurrentAxis6 = maxCurrentAxis6,
+                RMSCurrentAxis1 = rmsCurrentAxis1,
+                RMSCurrentAxis2 = rmsCurrentAxis2,
+                RMSCurrentAxis3 = rmsCurrentAxis3,
+                RMSCurrentAxis4 = rmsCurrentAxis4,
+                RMSCurrentAxis5 = rmsCurrentAxis5,
+                RMSCurrentAxis6 = rmsCurrentAxis6,
             };
 
             var table = new Table().Centered();
             table.AddColumn("Datetime");
-            table.AddColumn("MaxCurrentAxis1");
-            table.AddColumn("MaxCurrentAxis2");
-            table.AddColumn("MaxCurrentAxis3");
-            table.AddColumn("MaxCurrentAxis4");
-            table.AddColumn("MaxCurrentAxis5");
-            table.AddColumn("MaxCurrentAxis6");
-            table.AddColumn("RMSCurrentAxis1");
-            table.AddColumn("RMSCurrentAxis2");
-            table.AddColumn("RMSCurrentAxis3");
-            table.AddColumn("RMSCurrentAxis4");
-            table.AddColumn("RMSCurrentAxis5");
-            table.AddColumn("RMSCurrentAxis6");
+            table.AddColumn("Max Current Axis1");
+            table.AddColumn("Max Current Axis2");
+            table.AddColumn("Max Current Axis3");
+            table.AddColumn("Max Current Axis4");
+            table.AddColumn("Max Current Axis5");
+            table.AddColumn("Max Current Axis6");
+            table.AddColumn("RMS Current Axis1");
+            table.AddColumn("RMS Current Axis2");
+            table.AddColumn("RMS Current Axis3");
+            table.AddColumn("RMS Current Axis4");
+            table.AddColumn("RMS Current Axis5");
+            table.AddColumn("RMS Current Axis6");
             table.AddColumn("[red]Event Type[/]");
             table.AddColumn("[red]Probability[/]");
 
@@ -167,7 +167,7 @@ namespace AIPF_Console.RobotLoccioni_example
 
         public void Metrics()
         {
-            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv"));
+            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv"));
             if (metrics.Count == 0 || true)
             {
                 AnsiConsole.WriteLine("No available metrics.");

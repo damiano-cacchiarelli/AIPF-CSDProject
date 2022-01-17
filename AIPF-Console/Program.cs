@@ -3,47 +3,37 @@ using AIPF_Console.RobotLoccioni_example;
 using AIPF_Console.TaxiFare_example;
 using Spectre.Console;
 using System;
+using System.Collections.Generic;
 
 namespace AIPF_Console
 {
     class Program
     {
+        private static IExample example = null;
+        private static readonly Dictionary<string, Action<IExample>> Commands = new Dictionary<string, Action<IExample>>()
+            {
+                { "fit", e => e.Train() },
+                { "predict", e => e.Predict() },
+                { "metrics", e => e.Metrics() },
+                { "back", _ => example = null },
+                { "exit", _ => { } },
+            };
 
         static void Main(string[] args)
         {
-            IExample example = null;
             string line = string.Empty;
 
             while (!line.Equals("exit"))
             {
-                if (example == null) {
-                 example = SelectExample();
-                    if (example == null) continue;
+                if (example == null)
+                {
+                    example = SelectExample();
                 }
-                line = DefaultText(example);
+                line = DefaultText();
 
                 try
                 {
-                    switch (line)
-                    {
-                        case "fit":
-                            example.Train();
-                            AnsiConsole.WriteLine();
-                            break;
-                        case "predict":
-                            example.Predict();
-                            AnsiConsole.WriteLine();
-                            break;
-                        case "metrics":
-                            example.Metrics();
-                            AnsiConsole.WriteLine();
-                            break;
-                        case "exit":
-                            break;
-                        default:
-                            AnsiConsole.WriteLine("[red]Command not found![/]");
-                            break;
-                    }
+                    Commands[line].Invoke(example);
                 }
                 catch (Exception ex)
                 {
@@ -51,56 +41,53 @@ namespace AIPF_Console
                 }
                 if (line.Equals("exit")) break;
 
-                AnsiConsole.Write(new Rule("--").RuleStyle("blue").Centered());
+                if (!line.Equals("back"))
+                {
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.Write(new Rule("--").RuleStyle("blue").Centered());
 
-                if (!AnsiConsole.Confirm("Continue?"))
-                    break;
+                    if (!AnsiConsole.Confirm("Continue?"))
+                        break;
+                }
                 AnsiConsole.Clear();
             }
         }
 
         private static IExample SelectExample()
         {
-            var commands = new string[] { "mnist", "taxi-fare", "robot-loccioni" };
+            var examples = new Dictionary<string, Func<IExample>>()
+            {
+                { "mnist", () => Mnist.Start() },
+                { "taxi-fare", () => TaxiFare.Start() },
+                { "robot-loccioni", () => RobotLoccioni.Start() }
+            };
 
             var command = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Select the command you what to do")
-                    .PageSize(commands.Length)
+                    .PageSize(examples.Count)
                     .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
-                    .AddChoices(commands));
-            switch (command)
-            {
-                case "mnist":
-                    return Mnist.Start();
-                case "taxi-fare":
-                    return TaxiFare.Start();
-                case "robot-loccioni":
-                    return RobotLoccioni.Start();
-                default:
-                    AnsiConsole.WriteLine("[red]Command not found![/]");
-                    return null;
-            }
-            
+                    .AddChoices(examples.Keys));
+
+            return examples[command].Invoke();
         }
 
-        private static string DefaultText(IExample example)
+        private static string DefaultText()
         {
-            var commands = new string[] { "fit", "predict", "metrics", "exit" };
-
             AnsiConsole.Write(
                 new FigletText("AIPF - " + example.GetName())
                     .Centered()
                     .Color(Color.Blue));
+
             AnsiConsole.Write(new Rule("[bold white]Cacchiarelli, Cesetti, Romagnoli 10/01/2022[/]").RuleStyle("blue").Centered());
             AnsiConsole.WriteLine();
 
             return AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Select the command you what to do")
-                    .PageSize(commands.Length)
+                    .PageSize(Commands.Count)
                     .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
-                    .AddChoices(commands));
+                    .AddChoices(Commands.Keys));
         }
     }
 }
