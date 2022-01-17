@@ -18,7 +18,6 @@ namespace AIPF_Console.TaxiFare_example
 {
     public class TaxiFare : IExample
     {
-        private string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
 
@@ -49,11 +48,11 @@ namespace AIPF_Console.TaxiFare_example
                 .Build()
                 .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
                 .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
+                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
                 .Append(new DeleteColumn<object>("input"))
                 .Append(new RenameColumn2<object>("variable", "input"))
                 .Append(new DeleteColumn<object>("variable"))
-                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
+                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
                 .Build();
 
             var data = new RawStringTaxiFare[] { };
@@ -143,7 +142,7 @@ namespace AIPF_Console.TaxiFare_example
 
         public void Metrics()
         {
-            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/TaxiFare-example/Data/train_mini.csv"));
+            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv"));
             if (metrics.Count == 0 || true)
             {
                 AnsiConsole.WriteLine("No available metrics.");

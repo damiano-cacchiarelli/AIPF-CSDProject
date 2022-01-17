@@ -1,4 +1,5 @@
 ﻿using AIPF_Console.MNIST_example;
+using AIPF_Console.RobotLoccioni_example;
 using AIPF_Console.TaxiFare_example;
 using Spectre.Console;
 using System;
@@ -60,12 +61,12 @@ namespace AIPF_Console
 
         private static IExample SelectExample()
         {
-            var commands = new string[] { "mnist", "taxi-fare" };
+            var commands = new string[] { "mnist", "taxi-fare", "robot-loccioni" };
 
             var command = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Select the command you what to do")
-                    .PageSize(commands.Length + 1)
+                    .PageSize(commands.Length)
                     .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
                     .AddChoices(commands));
             switch (command)
@@ -74,6 +75,8 @@ namespace AIPF_Console
                     return Mnist.Start();
                 case "taxi-fare":
                     return TaxiFare.Start();
+                case "robot-loccioni":
+                    return RobotLoccioni.Start();
                 default:
                     AnsiConsole.WriteLine("[red]Command not found![/]");
                     return null;

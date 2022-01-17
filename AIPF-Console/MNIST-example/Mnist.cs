@@ -13,7 +13,6 @@ namespace AIPF_Console.MNIST_example
 {
     public class Mnist : IExample
     {
-        private string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
         private MLManager<VectorRawImage, OutputImage> mlManager = new MLManager<VectorRawImage, OutputImage>();
 
@@ -35,7 +34,7 @@ namespace AIPF_Console.MNIST_example
         public void Metrics()
         {
             if (rawImageDataList == null)
-                rawImageDataList = Utils.ReadImageFromFile($"{dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
+                rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
 
             var metrics = mlManager.EvaluateAll(new MLContext().Data.LoadFromEnumerable(rawImageDataList));
 
@@ -54,7 +53,7 @@ namespace AIPF_Console.MNIST_example
         public void Predict()
         {
             // Digit = 6
-            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{dir}/MNIST-example/Data/image_to_predict.txt")[0];
+            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
             OutputImage predictedImage = mlManager.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 0);
 
@@ -62,14 +61,14 @@ namespace AIPF_Console.MNIST_example
 
         public void Train()
         {
-            rawImageDataList = Utils.ReadImageFromFile($"{dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
+            rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
 
             mlManager.CreatePipeline()
-                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+                //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
-                .Append(new VectorImageResizer())
+                .AddTransformer(new VectorImageResizer())
                 .Append(new SdcaMaximumEntropy(3))
                 .Build();
 

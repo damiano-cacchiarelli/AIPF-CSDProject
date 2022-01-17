@@ -40,6 +40,7 @@ namespace AIPF.MLManager
 
         public void Fit(IDataView rawData, out IDataView transformedDataView)
         {
+            rawData.Preview();
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
