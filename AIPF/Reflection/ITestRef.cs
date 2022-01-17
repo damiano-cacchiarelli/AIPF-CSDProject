@@ -1,10 +1,14 @@
-﻿using System.Linq;
+﻿using AIPF.MLManager.Modifiers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace AIPF.MLManager
+namespace AIPF.Reflection
 {
-    public interface ICopy<T>
+    public interface ITestRef
     {
-        public void Copy(ref T b)
+        public void Copy(ref TestCopy b)
         {
             var otherType = b.GetType();
             var otherProperties = otherType.GetProperties();
@@ -12,10 +16,10 @@ namespace AIPF.MLManager
             var myInType = GetType();
             var myProperties = myInType.GetProperties();
 
-            foreach (var other in otherProperties)
+            foreach(var other in otherProperties)
             {
                 var p = myProperties.FirstOrDefault(p => p.Name == other.Name && p.PropertyType == other.PropertyType);
-                if (p != null)
+                if(p != null)
                 {
                     other.SetValue(b, p.GetValue(this));
                 }
