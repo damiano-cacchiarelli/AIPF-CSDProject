@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,8 @@ namespace AIPF_Console
 {
     public class Utils
     {
+      
+        private static readonly HttpClient client = new HttpClient();
 
         public static List<VectorRawImage> ReadImageFromFile(string path, int skipLine = 0)
         {
@@ -147,5 +150,35 @@ namespace AIPF_Console
             AnsiConsole.WriteLine($"                                           eight: {predictedImage.Digit[8]:0.####}");
             AnsiConsole.WriteLine($"                                           nine:  {predictedImage.Digit[9]:0.####}");
         }
+
+        public static async Task<List<MetricContainer>> MetricsRestCall(object body)
+        {
+            var json = JsonConvert.SerializeObject(body);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var url = "http://localhost:5000/api/mlmanager/metrics";
+            var response = await client.PutAsync(url, data);
+            var str = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<MetricContainer>>(str);
+        }
+
+        public static async Task<string> TrainRestCall(object body)
+        {
+            var json = JsonConvert.SerializeObject(body);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var url = "http://localhost:5000/api/mlmanager";
+            var response = await client.PostAsync(url, data);
+            return "OK";
+        }
+
+        public static async Task<T> PredictRestCall<T>(string modelName, object body)
+        {
+            var json = JsonConvert.SerializeObject(body);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var url = $"http://localhost:5000/api/mlmanager/predict/{modelName}";
+            var response = await client.PutAsync(url, data);
+            var str = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(str);
+        }
+
     }
 }

@@ -13,20 +13,24 @@ using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
-using AIPF.Models.Images;
 using AIPF.Models.Taxi;
+using AIPF_Console;
+using AIPF_Console.MNIST_example.Model;
+using AIPF_Console.MNIST_example.Modifiers;
+using AIPF_Console.RobotLoccioni_example.Model;
 using Microsoft.ML;
 
-namespace AIPF_WebApp.Models
+namespace AIPF_RESTController.Models
 {
     public class MLService
     {
         private MLManager<RawStringTaxiFare, PredictedFareAmount> taxiFareMlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
         private MLManager<VectorRawImage, OutputImage> mnistMlManager = new MLManager<VectorRawImage, OutputImage>();
+        private MLManager<RobotData, OutputMeasure> robotMlManager = new MLManager<RobotData, OutputMeasure>();
 
         public MLService()
         {
-            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).FullName + "/AIPF";
+            string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName + "/AIPF-Console";
 
             taxiFareMlManager.CreatePipeline()
                 .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
@@ -36,20 +40,29 @@ namespace AIPF_WebApp.Models
                 .Build()
                 .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
                 .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/Data/TaxiFare/Onnx/skl_pca.onnx"))
+                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
                 .Append(new DeleteColumn<object>("input"))
                 .Append(new RenameColumn2<object>("variable", "input"))
                 .Append(new DeleteColumn<object>("variable"))
-                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/Data/TaxiFare/Onnx/skl_pca_linReg.onnx"))
+                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
                 .Build();
 
             mnistMlManager.CreatePipeline()
-                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+                //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
-                .Append(new VectorImageResizer())
+                .AddTransformer(new VectorImageResizer())
                 .Append(new SdcaMaximumEntropy(3))
+                .Build();
+
+
+            var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
+            robotMlManager.CreatePipeline()
+                //.AddFilter(new MissingPropertyFilter<RobotData>())
+                //.AddFilter(i => i.EventType != 0)
+                .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
+                .Append(new ApplyOnnxModel<RobotData, OutputMeasure>($"{dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx"))
                 .Build();
         }
 
@@ -64,6 +77,10 @@ namespace AIPF_WebApp.Models
                 case "MNIST":
                     var list2 = CastListObject<VectorRawImage>(fitBody.Data);
                     mnistMlManager.Fit(list2, out var _);
+                    break;
+                case "robotLoccioni":
+                    var list3 = CastListObject<RobotData>(fitBody.Data);
+                    robotMlManager.Fit(list3, out var _);
                     break;
                 default:
                     throw new ArgumentException("Model name not found");
@@ -82,6 +99,9 @@ namespace AIPF_WebApp.Models
                     VectorRawImage obj2 =
                         JsonSerializer.Deserialize<VectorRawImage>(value.GetRawText());
                     return mnistMlManager.Predict(obj2);
+                case "robotLoccioni":
+                    RobotData obj3 = JsonSerializer.Deserialize<RobotData>(value.GetRawText());
+                    return robotMlManager.Predict(obj3);
                 default:
                     throw new ArgumentException("Model name not found");
             }
@@ -97,6 +117,9 @@ namespace AIPF_WebApp.Models
                 case "MNIST":
                     var list2 = CastListObject<VectorRawImage>(fitBody.Data);
                     return mnistMlManager.EvaluateAll(list2);
+                case "robotLoccioni":
+                    var list3 = CastListObject<RobotData>(fitBody.Data);
+                    return robotMlManager.EvaluateAll(list3);
                 default:
                     throw new ArgumentException("Model name not found");
             }

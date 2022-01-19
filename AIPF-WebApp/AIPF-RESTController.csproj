@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>AIPF_WebApp</RootNamespace>
+    <RootNamespace>AIPF_RESTController</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AIPF-Console\AIPF-Console.csproj" />
     <ProjectReference Include="..\AIPF\AIPF.csproj" />
   </ItemGroup>
 

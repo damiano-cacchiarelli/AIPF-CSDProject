@@ -4,11 +4,13 @@ using AIPF_Console.TaxiFare_example;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AIPF_Console
 {
     class Program
     {
+        public static readonly bool REST = true;
         private static IExample example = null;
         private static readonly Dictionary<string, Action<IExample>> Commands = new Dictionary<string, Action<IExample>>()
             {
@@ -19,8 +21,8 @@ namespace AIPF_Console
                 { "exit", _ => { } },
             };
 
-        static void Main(string[] args)
-        {
+        public static void Main(string[] args)
+        {        
             string line = string.Empty;
 
             while (!line.Equals("exit"))

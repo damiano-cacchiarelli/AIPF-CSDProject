@@ -1,5 +1,6 @@
 ﻿using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
+using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.Date;
@@ -21,7 +22,7 @@ namespace AIPF_Console.TaxiFare_example
 
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
 
-        protected TaxiFare() 
+        protected TaxiFare()
         {
 
         }
@@ -29,7 +30,7 @@ namespace AIPF_Console.TaxiFare_example
         public static IExample Start()
         {
             return new TaxiFare();
-            
+
         }
 
         public string GetName()
@@ -41,24 +42,32 @@ namespace AIPF_Console.TaxiFare_example
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
 
+            if (Program.REST)
+            {
+                dynamic fitBody = new { ModelName = "taxifare", Data = new object[0] };
+                Utils.TrainRestCall(fitBody);
+            }
+            else
+            {
 
-            mlManager.CreatePipeline()
-                .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
-                .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
-                .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
-                .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
-                .Build()
-                .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
-                .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
-                .Append(new DeleteColumn<object>("input"))
-                .Append(new RenameColumn2<object>("variable", "input"))
-                .Append(new DeleteColumn<object>("variable"))
-                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
-                .Build();
+                mlManager.CreatePipeline()
+                    .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
+                    .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
+                    .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
+                    .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
+                    .Build()
+                    .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
+                    .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
+                    .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
+                    .Append(new DeleteColumn<object>("input"))
+                    .Append(new RenameColumn2<object>("variable", "input"))
+                    .Append(new DeleteColumn<object>("variable"))
+                    .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
+                    .Build();
 
-            var data = new RawStringTaxiFare[] { };
-            mlManager.Fit(data, out var dataView);
+                var data = new RawStringTaxiFare[] { };
+                mlManager.Fit(data, out var dataView);
+            }
 
             Utils.FitLoader();
 
@@ -96,8 +105,16 @@ namespace AIPF_Console.TaxiFare_example
             table.AddColumn("Passenger count");
             table.AddColumn("[red]Fare amount[/]");
 
+            PredictedFareAmount predictedValue;
+            if (Program.REST)
+            {
+                predictedValue = Utils.PredictRestCall<PredictedFareAmount>("taxifare", toPredict).Result;
+            }
+            else
+            {
+                predictedValue = mlManager.Predict(toPredict);
+            }
 
-            var predictedValue = mlManager.Predict(toPredict);
 
 
             var values = new string[]{
@@ -117,7 +134,18 @@ namespace AIPF_Console.TaxiFare_example
 
         public void Metrics()
         {
-            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv"));
+            List<MetricContainer> metrics;
+            var data = mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv");
+            if (Program.REST)
+            {
+                dynamic fitBody = new { ModelName = "taxifare", Data = data };
+                metrics = Utils.MetricsRestCall(fitBody).Result;
+            }
+            else
+            {
+                metrics = mlManager.EvaluateAll(data);
+            }
+
             Utils.PrintMetrics(metrics);
         }
     }

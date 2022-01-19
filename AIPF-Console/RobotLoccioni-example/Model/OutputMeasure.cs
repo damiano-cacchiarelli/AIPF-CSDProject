@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.Onnx;
 
 namespace AIPF_Console.RobotLoccioni_example.Model
 {
-    class OutputMeasure
+    public class OutputMeasure
     {
         [ColumnName("output_label")]
         public long[] EventType { get; set; }

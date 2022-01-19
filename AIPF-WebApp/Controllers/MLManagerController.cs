@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using AIPF_WebApp.Models;
+using AIPF_RESTController.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AIPF.MLManager.Metrics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace AIPF_WebApp.Controllers
+namespace AIPF_RESTController.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

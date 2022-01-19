@@ -1,4 +1,5 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
 using AIPF_Console.MNIST_example.Modifiers;
@@ -36,7 +37,17 @@ namespace AIPF_Console.MNIST_example
             if (rawImageDataList == null)
                 rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
 
-            var metrics = mlManager.EvaluateAll(rawImageDataList);
+            List<MetricContainer> metrics;
+            if (Program.REST)
+            {
+                dynamic fitBody = new { ModelName = "MNIST", Data = rawImageDataList };
+                metrics = Utils.MetricsRestCall(fitBody).Result;
+            }
+            else
+            {
+                metrics = mlManager.EvaluateAll(rawImageDataList);
+            }
+
             Utils.PrintMetrics(metrics);
         }
 
@@ -44,24 +55,41 @@ namespace AIPF_Console.MNIST_example
         {
             // Digit = 6
             VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
-            OutputImage predictedImage = mlManager.Predict(rawImageToPredict);
+            OutputImage predictedImage;
+            if (Program.REST)
+            {
+                predictedImage = Utils.PredictRestCall<OutputImage>("MNIST", rawImageToPredict).Result;
+            }
+            else
+            {
+                predictedImage = mlManager.Predict(rawImageToPredict);
+                
+            }
             Utils.PrintPrediction(predictedImage, 0);
         }
 
         public void Train()
         {
             rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
+            if (Program.REST)
+            {
+                dynamic fitBody = new { ModelName = "MNIST", Data = rawImageDataList };
+                Utils.TrainRestCall(fitBody);
+            }
+            else
+            {
+                mlManager.CreatePipeline()
+                    //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+                    // Using our custom image resizer
+                    //.Append(new CustomImageResizer())
+                    // OR using the ml.net default ResizeImages method
+                    .AddTransformer(new VectorImageResizer())
+                    .Append(new SdcaMaximumEntropy(3))
+                    .Build();
 
-            mlManager.CreatePipeline()
-                //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
-                // Using our custom image resizer
-                //.Append(new CustomImageResizer())
-                // OR using the ml.net default ResizeImages method
-                .AddTransformer(new VectorImageResizer())
-                .Append(new SdcaMaximumEntropy(3))
-                .Build();
-
-            mlManager.Fit(rawImageDataList, out IDataView transformedDataView);
+                mlManager.Fit(rawImageDataList, out IDataView transformedDataView);
+            }
+            Utils.FitLoader();
         }
 /*
         static void PredictUsingBitmapPipeline()
