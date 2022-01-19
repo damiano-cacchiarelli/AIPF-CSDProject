@@ -41,6 +41,7 @@ namespace AIPF.MLManager
 
         public void Fit(IDataView rawData, out IDataView transformedDataView)
         {
+            rawData.Preview();
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
@@ -89,6 +90,11 @@ namespace AIPF.MLManager
         {
             return mlContext.Data.CreateEnumerable<O>(transformedDataView,
                 reuseRowObject: true);
+        }
+
+        public IDataView GetIDataView(List<O> transformedEnumerable)
+        {
+            return mlContext.Data.LoadFromEnumerable<O>(transformedEnumerable);
         }
     }
 }

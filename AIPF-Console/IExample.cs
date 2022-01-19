@@ -1,17 +1,19 @@
-﻿using AIPF.MLManager;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.IO;
+
 
 namespace AIPF_Console
 {
     public interface IExample
     {
-        public void train();
+        static string Dir => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
-        public void predict();
+        public string GetName();
 
-        public void metrics();
+        public void Train();
+
+        public void Predict();
+
+        public void Metrics();
 
     }
 }

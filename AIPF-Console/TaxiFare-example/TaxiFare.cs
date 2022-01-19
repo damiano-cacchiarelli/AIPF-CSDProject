@@ -18,9 +18,13 @@ namespace AIPF_Console.TaxiFare_example
 {
     public class TaxiFare : IExample
     {
-        private string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
+
+        protected TaxiFare() 
+        {
+
+        }
 
         public static IExample Start()
         {
@@ -28,9 +32,16 @@ namespace AIPF_Console.TaxiFare_example
             
         }
 
-        public void train()
+        public string GetName()
+        {
+            return "Taxi-Fare";
+        }
+
+        public void Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
+
+
             mlManager.CreatePipeline()
                 .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                 .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
@@ -39,49 +50,22 @@ namespace AIPF_Console.TaxiFare_example
                 .Build()
                 .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
                 .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
+                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
                 .Append(new DeleteColumn<object>("input"))
                 .Append(new RenameColumn2<object>("variable", "input"))
                 .Append(new DeleteColumn<object>("variable"))
-                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
+                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
                 .Build();
 
             var data = new RawStringTaxiFare[] { };
             mlManager.Fit(data, out var dataView);
 
-            AnsiConsole.Progress()
-                .Columns(new ProgressColumn[]
-                    {
-                        new TaskDescriptionColumn(),            // Task description
-                        new ProgressBarColumn(),                // Progress bar
-                        new PercentageColumn(),                 // Percentage
-                        new SpinnerColumn(),  // Spinner
-                    })
-                .Start(ctx =>
-                {
-                    var random = new Random(DateTime.Now.Millisecond);
-                    var task1 = ctx.AddTask("Preparing pipeline");
-                    var task2 = ctx.AddTask("Fitting model", autoStart: false).IsIndeterminate();
-
-                    while (!ctx.IsFinished)
-                    {
-                        task1.Increment(10 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-
-                    task2.StartTask();
-                    task2.IsIndeterminate(false);
-                    while (!ctx.IsFinished)
-                    {
-                        task2.Increment(8 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-                });
+            Utils.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public void predict()
+        public void Predict()
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -131,17 +115,10 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.Write(table);
         }
 
-        public void metrics()
+        public void Metrics()
         {
-            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/Data/train_mini.csv"));
-            if (metrics.Count == 0 || true)
-            {
-                AnsiConsole.WriteLine("No available metrics.");
-            }
-            else
-            {
-                metrics.ForEach(m => AnsiConsole.WriteLine(m.ToString()));
-            }
+            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv"));
+            Utils.PrintMetrics(metrics);
         }
     }
 }
