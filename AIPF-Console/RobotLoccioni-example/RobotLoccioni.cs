@@ -19,7 +19,7 @@ namespace AIPF_Console.RobotLoccioni_example
     public class RobotLoccioni : IExample
     {
         private MLManager<RobotData, OutputMeasure> mlManager = new MLManager<RobotData, OutputMeasure>();
-
+         
         protected RobotLoccioni()
         {
 
@@ -52,34 +52,7 @@ namespace AIPF_Console.RobotLoccioni_example
             var data = new RobotData[] { };
             mlManager.Fit(data, out var dataView);
 
-            AnsiConsole.Progress()
-                .Columns(new ProgressColumn[]
-                    {
-                        new TaskDescriptionColumn(),            // Task description
-                        new ProgressBarColumn(),                // Progress bar
-                        new PercentageColumn(),                 // Percentage
-                        new SpinnerColumn(),  // Spinner
-                    })
-                .Start(ctx =>
-                {
-                    var random = new Random(DateTime.Now.Millisecond);
-                    var task1 = ctx.AddTask("Preparing pipeline");
-                    var task2 = ctx.AddTask("Fitting model", autoStart: false).IsIndeterminate();
-
-                    while (!ctx.IsFinished)
-                    {
-                        task1.Increment(10 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-
-                    task2.StartTask();
-                    task2.IsIndeterminate(false);
-                    while (!ctx.IsFinished)
-                    {
-                        task2.Increment(8 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-                });
+            Utils.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -139,7 +112,7 @@ namespace AIPF_Console.RobotLoccioni_example
 
             
             var predictedValue = mlManager.Predict(toPredict);
-            var sortedDict = from entry in predictedValue.Probability.ToArray()[0] orderby entry.Value descending select entry;
+            //var sortedDict = from entry in predictedValue.Probability.ToArray()[0] orderby entry.Value descending select entry;
 
             var values = new string[]{
                 datetime,
@@ -157,7 +130,7 @@ namespace AIPF_Console.RobotLoccioni_example
                 rmsCurrentAxis6.ToString(),
                 //$"[red]{sortedDict.ToArray()[0].Key}[/]",
                 $"[red]{predictedValue.EventTypeName()}[/]",
-                $"[red]{sortedDict.ToArray()[0].Value}[/]"
+                $"[red]{(predictedValue.Probability.ToArray()[0])[predictedValue.EventType[0]]}[/]"
             };
 
             table.AddRow(values);
@@ -168,14 +141,7 @@ namespace AIPF_Console.RobotLoccioni_example
         public void Metrics()
         {
             var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv"));
-            if (metrics.Count == 0 || true)
-            {
-                AnsiConsole.WriteLine("No available metrics.");
-            }
-            else
-            {
-                metrics.ForEach(m => AnsiConsole.WriteLine(m.ToString()));
-            }
+            Utils.PrintMetrics(metrics);
         }
     }
 }

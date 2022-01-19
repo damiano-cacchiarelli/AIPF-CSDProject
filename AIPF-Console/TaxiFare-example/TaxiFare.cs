@@ -40,6 +40,8 @@ namespace AIPF_Console.TaxiFare_example
         public void Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
+
+
             mlManager.CreatePipeline()
                 .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                 .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
@@ -58,34 +60,7 @@ namespace AIPF_Console.TaxiFare_example
             var data = new RawStringTaxiFare[] { };
             mlManager.Fit(data, out var dataView);
 
-            AnsiConsole.Progress()
-                .Columns(new ProgressColumn[]
-                    {
-                        new TaskDescriptionColumn(),            // Task description
-                        new ProgressBarColumn(),                // Progress bar
-                        new PercentageColumn(),                 // Percentage
-                        new SpinnerColumn(),  // Spinner
-                    })
-                .Start(ctx =>
-                {
-                    var random = new Random(DateTime.Now.Millisecond);
-                    var task1 = ctx.AddTask("Preparing pipeline");
-                    var task2 = ctx.AddTask("Fitting model", autoStart: false).IsIndeterminate();
-
-                    while (!ctx.IsFinished)
-                    {
-                        task1.Increment(10 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-
-                    task2.StartTask();
-                    task2.IsIndeterminate(false);
-                    while (!ctx.IsFinished)
-                    {
-                        task2.Increment(8 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-                });
+            Utils.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -143,14 +118,7 @@ namespace AIPF_Console.TaxiFare_example
         public void Metrics()
         {
             var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv"));
-            if (metrics.Count == 0 || true)
-            {
-                AnsiConsole.WriteLine("No available metrics.");
-            }
-            else
-            {
-                metrics.ForEach(m => AnsiConsole.WriteLine(m.ToString()));
-            }
+            Utils.PrintMetrics(metrics);
         }
     }
 }

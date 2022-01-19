@@ -36,18 +36,8 @@ namespace AIPF_Console.MNIST_example
             if (rawImageDataList == null)
                 rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
 
-            var metrics = mlManager.EvaluateAll(new MLContext().Data.LoadFromEnumerable(rawImageDataList));
-
-            if (metrics.Count == 0 || true)
-            {
-                AnsiConsole.WriteLine("No available metrics.");
-            }
-            else
-            {
-                metrics.ForEach(m => AnsiConsole.WriteLine(m.ToString()));
-            }
-
-
+            var metrics = mlManager.EvaluateAll(rawImageDataList);
+            Utils.PrintMetrics(metrics);
         }
 
         public void Predict()
@@ -56,7 +46,6 @@ namespace AIPF_Console.MNIST_example
             VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
             OutputImage predictedImage = mlManager.Predict(rawImageToPredict);
             Utils.PrintPrediction(predictedImage, 0);
-
         }
 
         public void Train()
