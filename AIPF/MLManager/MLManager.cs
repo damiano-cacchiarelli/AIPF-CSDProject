@@ -85,16 +85,5 @@ namespace AIPF.MLManager
 
             return mlBuilder.EvaluateAll(dataView);
         }
-
-        public IEnumerable<O> GetEnumerable(IDataView transformedDataView)
-        {
-            return mlContext.Data.CreateEnumerable<O>(transformedDataView,
-                reuseRowObject: true);
-        }
-
-        public IDataView GetIDataView(List<O> transformedEnumerable)
-        {
-            return mlContext.Data.LoadFromEnumerable<O>(transformedEnumerable);
-        }
     }
 }

@@ -7,7 +7,7 @@ namespace AIPF_Console
     {
         static string Dir => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
-        public string GetName();
+        public string Name {  get;  }
 
         public void Train();
 

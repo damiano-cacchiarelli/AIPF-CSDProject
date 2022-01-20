@@ -3,6 +3,7 @@ using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
 using AIPF_Console.MNIST_example.Modifiers;
+using AIPF_Console.Utils;
 using Microsoft.ML;
 using Spectre.Console;
 using System;
@@ -14,67 +15,63 @@ namespace AIPF_Console.MNIST_example
 {
     public class Mnist : IExample
     {
-
         private MLManager<VectorRawImage, OutputImage> mlManager = new MLManager<VectorRawImage, OutputImage>();
 
         private List<VectorRawImage> rawImageDataList = null;
+        public string Name => "MNIST";
 
         protected Mnist()
         {
         }
+
         public static IExample Start()
         {
             return new Mnist();
         }
 
-        public string GetName()
-        {
-            return "MNIST";
-        }
-
         public void Metrics()
         {
             if (rawImageDataList == null)
-                rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
+                rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
 
             List<MetricContainer> metrics;
             if (Program.REST)
             {
-                dynamic fitBody = new { ModelName = "MNIST", Data = rawImageDataList };
-                metrics = Utils.MetricsRestCall(fitBody).Result;
+                dynamic fitBody = new { ModelName = Name, Data = rawImageDataList };
+                metrics = RestService.Put<List<MetricContainer>>("metrics", fitBody).Result;
             }
             else
             {
                 metrics = mlManager.EvaluateAll(rawImageDataList);
             }
 
-            Utils.PrintMetrics(metrics);
+            ConsoleHelper.PrintMetrics(metrics);
         }
 
         public void Predict()
         {
             // Digit = 6
-            VectorRawImage rawImageToPredict = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
+            VectorRawImage rawImageToPredict = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
             OutputImage predictedImage;
             if (Program.REST)
             {
-                predictedImage = Utils.PredictRestCall<OutputImage>("MNIST", rawImageToPredict).Result;
+                predictedImage = RestService.Put<OutputImage>($"predict/{Name}", rawImageToPredict).Result;
             }
             else
             {
                 predictedImage = mlManager.Predict(rawImageToPredict);
                 
             }
-            Utils.PrintPrediction(predictedImage, 0);
+            ConsoleHelper.PrintPrediction(predictedImage, 0);
         }
 
         public void Train()
         {
-            rawImageDataList = Utils.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
+            rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
             if (Program.REST)
             {
-                dynamic fitBody = new { ModelName = "MNIST", Data = rawImageDataList };
-                Utils.TrainRestCall(fitBody);
+                dynamic fitBody = new { ModelName = Name, Data = rawImageDataList };
+                RestService.Post<string>("train", fitBody);
             }
             else
             {
@@ -89,7 +86,7 @@ namespace AIPF_Console.MNIST_example
 
                 mlManager.Fit(rawImageDataList, out IDataView transformedDataView);
             }
-            Utils.FitLoader();
+            ConsoleHelper.FitLoader();
         }
 /*
         static void PredictUsingBitmapPipeline()

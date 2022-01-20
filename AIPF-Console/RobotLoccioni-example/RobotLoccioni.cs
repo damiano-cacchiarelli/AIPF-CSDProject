@@ -1,8 +1,10 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.Actions.Filters;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF_Console.RobotLoccioni_example.Model;
+using AIPF_Console.Utils;
 using Spectre.Console;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,9 @@ namespace AIPF_Console.RobotLoccioni_example
     public class RobotLoccioni : IExample
     {
         private MLManager<RobotData, OutputMeasure> mlManager = new MLManager<RobotData, OutputMeasure>();
-         
+
+        public string Name => "Robot-Loccioni";
+
         protected RobotLoccioni()
         {
 
@@ -23,10 +27,6 @@ namespace AIPF_Console.RobotLoccioni_example
             return new RobotLoccioni();
         }
 
-        public string GetName()
-        {
-            return "robot";
-        }
 
         public void Train()
         {
@@ -34,26 +34,25 @@ namespace AIPF_Console.RobotLoccioni_example
 
             if (Program.REST)
             {
-                dynamic fitBody = new { ModelName = "robotLoccioni", Data = new object[0] };
-                Utils.TrainRestCall(fitBody);
+                dynamic fitBody = new { ModelName = Name, Data = new object[0] };
+                RestService.Post<string>("train", fitBody);
             }
             else
             {
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
                 mlManager.CreatePipeline()
-                    //.AddFilter(new MissingPropertyFilter<RobotData>())
-                    //.AddFilter(i => i.EventType != 0)
+                    .AddFilter(new MissingPropertyFilter<RobotData>())
+                    .AddFilter(i => i.EventType != 0)
                     .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
                     .Append(new ApplyOnnxModel<RobotData, OutputMeasure>($"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx"))
-                    //.Append(new RenameColumn<object>("output_probability", "output_probability"))
                     .Build();
 
                 var data = new RobotData[] { };
                 mlManager.Fit(data, out var dataView);
             }
 
-            Utils.FitLoader();
+            ConsoleHelper.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -114,7 +113,7 @@ namespace AIPF_Console.RobotLoccioni_example
             OutputMeasure predictedValue;
             if (Program.REST)
             {
-                predictedValue = Utils.PredictRestCall<OutputMeasure>("robotLoccioni", toPredict).Result;
+                predictedValue = RestService.Put<OutputMeasure>($"predict/{Name}", toPredict).Result;
             }
             else
             {
@@ -150,15 +149,16 @@ namespace AIPF_Console.RobotLoccioni_example
             var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv");
             if (Program.REST)
             {
-                dynamic fitBody = new { ModelName = "robotLoccioni", Data = data };
-                metrics = Utils.MetricsRestCall(fitBody).Result;
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
+                dynamic fitBody = new { ModelName = Name, Data = rawDataList };
+                metrics = RestService.Put<List<MetricContainer>>("metrics", fitBody).Result;
             }
             else
             {
                 metrics = mlManager.EvaluateAll(data);
             }
 
-            Utils.PrintMetrics(metrics);
+            ConsoleHelper.PrintMetrics(metrics);
         }
     }
 }

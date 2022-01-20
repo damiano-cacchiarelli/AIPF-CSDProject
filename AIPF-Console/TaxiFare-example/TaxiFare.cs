@@ -7,11 +7,13 @@ using AIPF.MLManager.Modifiers.Date;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF.Models.Taxi;
+using AIPF_Console.Utils;
 using Microsoft.ML;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -21,6 +23,8 @@ namespace AIPF_Console.TaxiFare_example
     {
 
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
+
+        public string Name => "Taxi-Fare";
 
         protected TaxiFare()
         {
@@ -33,19 +37,14 @@ namespace AIPF_Console.TaxiFare_example
 
         }
 
-        public string GetName()
-        {
-            return "Taxi-Fare";
-        }
-
         public void Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
 
             if (Program.REST)
             {
-                dynamic fitBody = new { ModelName = "taxifare", Data = new object[0] };
-                Utils.TrainRestCall(fitBody);
+                dynamic fitBody = new { ModelName = Name, Data = new object[0] };
+                RestService.Post<string>("train", fitBody);
             }
             else
             {
@@ -69,7 +68,7 @@ namespace AIPF_Console.TaxiFare_example
                 mlManager.Fit(data, out var dataView);
             }
 
-            Utils.FitLoader();
+            ConsoleHelper.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -108,7 +107,7 @@ namespace AIPF_Console.TaxiFare_example
             PredictedFareAmount predictedValue;
             if (Program.REST)
             {
-                predictedValue = Utils.PredictRestCall<PredictedFareAmount>("taxifare", toPredict).Result;
+                predictedValue = RestService.Put<PredictedFareAmount>($"predict/{Name}", toPredict).Result;
             }
             else
             {
@@ -138,15 +137,16 @@ namespace AIPF_Console.TaxiFare_example
             var data = mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv");
             if (Program.REST)
             {
-                dynamic fitBody = new { ModelName = "taxifare", Data = data };
-                metrics = Utils.MetricsRestCall(fitBody).Result;
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
+                dynamic fitBody = new { ModelName = Name, Data = rawDataList };
+                metrics = RestService.Put<List<MetricContainer>>("metrics", fitBody).Result;
             }
             else
             {
                 metrics = mlManager.EvaluateAll(data);
             }
 
-            Utils.PrintMetrics(metrics);
+            ConsoleHelper.PrintMetrics(metrics);
         }
     }
 }

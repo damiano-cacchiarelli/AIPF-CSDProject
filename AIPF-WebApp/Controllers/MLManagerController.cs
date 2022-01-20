@@ -20,7 +20,7 @@ namespace AIPF_RESTController.Controllers
 
         // fit
         // POST api/<MLManagerController>
-        [HttpPost]
+        [HttpPost("train")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public void Fit([FromBody] FitBody value)

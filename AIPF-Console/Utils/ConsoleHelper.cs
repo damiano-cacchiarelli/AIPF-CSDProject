@@ -1,74 +1,15 @@
-﻿using AIPF.MLManager.Metrics;
-using AIPF_Console.MNIST_example.Model;
-using Newtonsoft.Json;
-using Spectre.Console;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using AIPF.MLManager.Metrics;
+using AIPF_Console.MNIST_example.Model;
+using Spectre.Console;
 
-namespace AIPF_Console
+namespace AIPF_Console.Utils
 {
-    public class Utils
+    class ConsoleHelper
     {
-      
-        private static readonly HttpClient client = new HttpClient();
-
-        public static List<VectorRawImage> ReadImageFromFile(string path, int skipLine = 0)
-        {
-            if (!File.Exists(path))
-            {
-                throw new Exception($"The file does not exist: {path}");
-            }
-            //ConsoleHelper.WriteLine($"Reading File {path}");
-            List<string> lines = new List<string>(File.ReadAllLines(path));
-            List<VectorRawImage> originalImages = new List<VectorRawImage>();
-
-            //ConsoleProgress consoleProgress = new ConsoleProgress("Generating Original Image");
-            for (int i = skipLine; i < lines.Count; i += 33)
-            {
-                //consoleProgress.Report((double)i/ lines.Count);
-                //ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
-                var digit = "-1";
-                if (lines.Count > i + 32)
-                {
-                    digit = lines[i + 32];
-                }
-                originalImages.Add(new VectorRawImage(lines.GetRange(i, 32), digit));
-            }
-
-            return originalImages;
-        }
-
-        public static List<BitmapRawImage> ReadBitmapFromFile(string path, int skipLine = 0)
-        {
-            if (!File.Exists(path))
-            {
-                throw new Exception($"The file does not exist: {path}");
-            }
-            //ConsoleHelper.WriteLine($"Reading File {path}");
-            List<string> lines = new List<string>(File.ReadAllLines(path));
-            List<BitmapRawImage> originalImages = new List<BitmapRawImage>();
-
-            for (int i = skipLine; i < lines.Count; i += 33)
-            {
-                //ConsoleHelper.WriteLine($"Generating Original Image with lines {i} - {i + 32}");
-                var digit = "-1";
-                if (lines.Count > i + 32)
-                {
-                    digit = lines[i + 32];
-                }
-                originalImages.Add(new BitmapRawImage(lines.GetRange(i, 32), digit));
-            }
-
-            return originalImages;
-        }
-
         public static void FitLoader()
         {
             AnsiConsole.Progress()
@@ -103,7 +44,7 @@ namespace AIPF_Console
 
         public static string MetricContainerToString(MetricContainer metricContainer)
         {
-            var metrics = metricContainer.Metrics.Select( m => MetricOptionsToString(m));
+            var metrics = metricContainer.Metrics.Select(m => MetricOptionsToString(m));
             string line = string.Join("\n\t-- ", metrics);
             return $"{metricContainer.Name}\n\t-- {line}";
         }
@@ -149,35 +90,6 @@ namespace AIPF_Console
             AnsiConsole.WriteLine($"                                           seven: {predictedImage.Digit[7]:0.####}");
             AnsiConsole.WriteLine($"                                           eight: {predictedImage.Digit[8]:0.####}");
             AnsiConsole.WriteLine($"                                           nine:  {predictedImage.Digit[9]:0.####}");
-        }
-
-        public static async Task<List<MetricContainer>> MetricsRestCall(object body)
-        {
-            var json = JsonConvert.SerializeObject(body);
-            var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = "http://localhost:5000/api/mlmanager/metrics";
-            var response = await client.PutAsync(url, data);
-            var str = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<MetricContainer>>(str);
-        }
-
-        public static async Task<string> TrainRestCall(object body)
-        {
-            var json = JsonConvert.SerializeObject(body);
-            var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = "http://localhost:5000/api/mlmanager";
-            var response = await client.PostAsync(url, data);
-            return "OK";
-        }
-
-        public static async Task<T> PredictRestCall<T>(string modelName, object body)
-        {
-            var json = JsonConvert.SerializeObject(body);
-            var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = $"http://localhost:5000/api/mlmanager/predict/{modelName}";
-            var response = await client.PutAsync(url, data);
-            var str = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<T>(str);
         }
 
     }

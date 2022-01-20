@@ -77,7 +77,7 @@ namespace AIPF_Console
         private static string DefaultText()
         {
             AnsiConsole.Write(
-                new FigletText("AIPF - " + example.GetName())
+                new FigletText("AIPF - " + example.Name)
                     .Centered()
                     .Color(Color.Blue));
 

@@ -70,7 +70,7 @@ namespace AIPF_RESTController.Models
         {
             switch (fitBody.ModelName)
             {
-                case "taxifare":
+                case "Taxi-Fare":
                     var list1 = CastListObject<RawStringTaxiFare>(fitBody.Data);
                     taxiFareMlManager.Fit(list1, out var _);
                     break;
@@ -78,7 +78,7 @@ namespace AIPF_RESTController.Models
                     var list2 = CastListObject<VectorRawImage>(fitBody.Data);
                     mnistMlManager.Fit(list2, out var _);
                     break;
-                case "robotLoccioni":
+                case "Robot-Loccioni":
                     var list3 = CastListObject<RobotData>(fitBody.Data);
                     robotMlManager.Fit(list3, out var _);
                     break;
@@ -91,7 +91,7 @@ namespace AIPF_RESTController.Models
         {
             switch (modelName)
             {
-                case "taxifare":
+                case "Taxi-Fare":
                     RawStringTaxiFare obj =
                         JsonSerializer.Deserialize<RawStringTaxiFare>(value.GetRawText());
                     return taxiFareMlManager.Predict(obj);
@@ -99,7 +99,7 @@ namespace AIPF_RESTController.Models
                     VectorRawImage obj2 =
                         JsonSerializer.Deserialize<VectorRawImage>(value.GetRawText());
                     return mnistMlManager.Predict(obj2);
-                case "robotLoccioni":
+                case "Robot-Loccioni":
                     RobotData obj3 = JsonSerializer.Deserialize<RobotData>(value.GetRawText());
                     return robotMlManager.Predict(obj3);
                 default:
@@ -109,15 +109,16 @@ namespace AIPF_RESTController.Models
 
         public List<MetricContainer> Metrics (FitBody fitBody)
         {
+
             switch (fitBody.ModelName)
             {
-                case "taxifare":
+                case "Taxi-Fare":
                     var list1 = CastListObject<RawStringTaxiFare>(fitBody.Data);
                     return taxiFareMlManager.EvaluateAll(list1);
                 case "MNIST":
                     var list2 = CastListObject<VectorRawImage>(fitBody.Data);
                     return mnistMlManager.EvaluateAll(list2);
-                case "robotLoccioni":
+                case "Robot-Loccioni":
                     var list3 = CastListObject<RobotData>(fitBody.Data);
                     return robotMlManager.EvaluateAll(list3);
                 default:
