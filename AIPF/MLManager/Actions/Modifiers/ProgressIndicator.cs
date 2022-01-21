@@ -1,4 +1,5 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.EventQueue;
+using Microsoft.ML;
 using System;
 using System.Threading;
 
@@ -13,12 +14,19 @@ namespace AIPF.MLManager.Modifiers
         private int processed = 0;
         public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
-        //protected ConsoleProgress consoleProgress;
+
+        protected IMessageQueue<int> messageQueue;
+
+        public ProgressIndicator(string processName, IMessageQueue<int> messageQueue)
+        {
+            this.processName = processName;
+            this.messageQueue = messageQueue;
+            this.messageQueue.Register(processName);
+        }
 
         public ProgressIndicator(string processName)
         {
             this.processName = processName;
-            //consoleProgress = new ConsoleProgress($"{processName} - Work  in progress...");
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -28,9 +36,9 @@ namespace AIPF.MLManager.Modifiers
 
         private void MappingOperation(I input, I output)
         {
-            /*
             input.Copy(ref output);
-            Log();*/
+            Interlocked.Increment(ref processed);
+            messageQueue.EnqueueAsync(processName, processed, CancellationToken.None);
         }
 
         protected virtual void Log()

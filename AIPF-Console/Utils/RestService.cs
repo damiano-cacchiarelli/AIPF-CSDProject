@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,6 +50,16 @@ namespace AIPF_Console.Utils
                 return JsonConvert.DeserializeObject<T>(str);
             }
             return default(T);
+        }
+
+        public static async Task<StreamReader> PostStream(string uri, object body)
+        {
+
+            var json = JsonConvert.SerializeObject(body);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"{url}/{uri}", data);
+            var stream = await response.Content.ReadAsStreamAsync();
+            return new StreamReader(stream);
         }
 
         /*

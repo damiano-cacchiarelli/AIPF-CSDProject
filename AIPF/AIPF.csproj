@@ -10,6 +10,7 @@
     <Compile Remove="MLManager\Evaluable.cs" />
     <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate - Copia.cs" />
     <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate2.cs" />
+    <Compile Remove="MLManager\MessageQueque.cs" />
   </ItemGroup>
 
   <ItemGroup>

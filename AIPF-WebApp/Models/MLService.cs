@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
+using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
@@ -28,7 +29,7 @@ namespace AIPF_RESTController.Models
         private MLManager<VectorRawImage, OutputImage> mnistMlManager = new MLManager<VectorRawImage, OutputImage>();
         private MLManager<RobotData, OutputMeasure> robotMlManager = new MLManager<RobotData, OutputMeasure>();
 
-        public MLService()
+        public MLService(IMessageQueue<int> messageQueue)
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName + "/AIPF-Console";
 
@@ -48,11 +49,11 @@ namespace AIPF_RESTController.Models
                 .Build();
 
             mnistMlManager.CreatePipeline()
-                //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
-                .AddTransformer(new VectorImageResizer())
+                .Append(new VectorImageResizer())
                 .Append(new SdcaMaximumEntropy(3))
                 .Build();
 

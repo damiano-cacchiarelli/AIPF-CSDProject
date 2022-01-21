@@ -1,4 +1,5 @@
 ﻿using AIPF.MLManager.Actions;
+using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using System;
@@ -47,6 +48,7 @@ namespace AIPF.MLManager
 
             mlBuilder.Fit(rawData, out transformedDataView);
             trained = true;
+            //this.MessageQueue.Unregister("1");
         }
 
         public O Predict(I toPredict)
@@ -58,15 +60,7 @@ namespace AIPF.MLManager
             if (toPredict == null)
                 throw new Exception("You must pass a valid item!");
 
-            //try
-            // {
-                return mlBuilder.Predict(toPredict);
-            //}
-            //catch (Exception e)
-            // {
-            //    Console.WriteLine(e.Message);
-            //    return default;
-            //}
+            return mlBuilder.Predict(toPredict);
         }
 
         public List<MetricContainer> EvaluateAll(IEnumerable<I> data)

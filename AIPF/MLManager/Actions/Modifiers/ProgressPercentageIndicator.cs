@@ -1,11 +1,13 @@
-﻿using System;
+﻿using AIPF.MLManager.EventQueue;
+using System;
 
 namespace AIPF.MLManager.Modifiers
 {
     public class ProgressPercentageIndicator<I> : ProgressIndicator<I> where I : class, ICopy<I>, new()
     {
-
-        
+        public ProgressPercentageIndicator(string processName, IMessageQueue<int> messageQueue) : base(processName, messageQueue)
+        {
+        }
 
         public float Percentage
         {

@@ -1,4 +1,5 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
@@ -10,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIPF_Console.MNIST_example
 {
@@ -65,26 +68,59 @@ namespace AIPF_Console.MNIST_example
             ConsoleHelper.PrintPrediction(predictedImage, 0);
         }
 
-        public void Train()
+        public void Train() { }
+
+        async Task IExample.Train2()
         {
             rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
             if (Program.REST)
             {
                 dynamic fitBody = new { ModelName = Name, Data = rawImageDataList };
-                RestService.Post<string>("train", fitBody);
+                using (var streamReader = RestService.PostStream("train", fitBody))
+                {
+                    while (!streamReader.EndOfStream)
+                    {
+                        var message = await streamReader.ReadLineAsync();
+                        Console.WriteLine($"Received price update: {message}");
+                    }
+                }
             }
             else
             {
+                //var messageQueue = new MessageQueue<int>();
                 mlManager.CreatePipeline()
-                    //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+                    //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
                     // Using our custom image resizer
                     //.Append(new CustomImageResizer())
                     // OR using the ml.net default ResizeImages method
                     .AddTransformer(new VectorImageResizer())
-                    .Append(new SdcaMaximumEntropy(3))
+                    .Append(new SdcaMaximumEntropy(90))
                     .Build();
 
                 mlManager.Fit(rawImageDataList, out IDataView transformedDataView);
+
+                /*
+                new Thread(() => { mlManager.Fit(rawImageDataList, out IDataView transformedDataView); AnsiConsole.WriteLine("End fit!"); }).Start();
+
+                await AnsiConsole.Progress()
+                    .Columns(new ProgressColumn[]
+                        {
+                                            new TaskDescriptionColumn(),            // Task description
+                                            new ProgressBarColumn(),                // Progress bar
+                                            new PercentageColumn(),                 // Percentage
+                                            new SpinnerColumn(),  // Spinner
+                        })
+                    .StartAsync(async ctx =>
+                    {
+                        var random = new Random(DateTime.Now.Millisecond);
+                        var task1 = ctx.AddTask("Fitting pipeline", maxValue: 178200);
+                        await foreach (var message in messageQueue.DequeueAsync(@"Process#1", CancellationToken.None))
+                        {
+                            task1.Increment(1);
+                            //if (message >= 178200) break;
+                        }
+                    });
+                */
             }
             ConsoleHelper.FitLoader();
         }
