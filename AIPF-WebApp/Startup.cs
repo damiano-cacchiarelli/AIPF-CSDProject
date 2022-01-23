@@ -21,7 +21,7 @@ namespace AIPF_RESTController
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<MessageQueue<int>>();
+            services.AddSingleton<MessageQueue<double>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

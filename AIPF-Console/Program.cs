@@ -12,15 +12,15 @@ namespace AIPF_Console
 {
     class Program
     {
-        public static readonly bool REST = false;
+        public static readonly bool REST = true;
         private static IExample example = null;
         private static readonly Dictionary<string, Func<IExample, Task>> Commands = new Dictionary<string, Func<IExample, Task>>()
             {
-                { "fit", async e => await e.Train2() },
-                { "predict", async e => e.Predict() },
-                { "metrics", async e => e.Metrics() },
-                { "back", async _ => example = null },
-                { "exit", async _ => { } },
+                { "fit", async e => await e.Train() },
+                { "predict", async e => await e.Predict() },
+                { "metrics", async e => await e.Metrics() },
+                { "back", _ => { example = null; return Task.CompletedTask; } },
+                { "exit", _ => Task.CompletedTask },
             };
         /*
         static async Task Main(string[] args)
@@ -59,10 +59,6 @@ namespace AIPF_Console
 
         public async static Task Main(string[] args)
         {
-            example = Mnist.Start();
-            await example.Train2();
-            AnsiConsole.WriteLine("end!");
-            /*
             string line = string.Empty;
 
             while (!line.Equals("exit"))
@@ -92,7 +88,7 @@ namespace AIPF_Console
                         break;
                 }
                 AnsiConsole.Clear();
-            }*/
+            }
         }
 
         private static IExample SelectExample()

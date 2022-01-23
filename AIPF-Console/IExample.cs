@@ -9,13 +9,11 @@ namespace AIPF_Console
 
         public string Name {  get;  }
 
-        public void Train();
+        public Task Train();
 
-        public async Task Train2() { }
+        public Task Predict();
 
-        public void Predict();
-
-        public void Metrics();
+        public Task Metrics();
 
     }
 }

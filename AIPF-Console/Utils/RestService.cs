@@ -52,14 +52,14 @@ namespace AIPF_Console.Utils
             return default(T);
         }
 
-        public static async Task<StreamReader> PostStream(string uri, object body)
+        public static async Task<Stream> PostStream(string uri, object body)
         {
 
             var json = JsonConvert.SerializeObject(body);
             var data = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await client.PostAsync($"{url}/{uri}", data);
-            var stream = await response.Content.ReadAsStreamAsync();
-            return new StreamReader(stream);
+            return await response.Content.ReadAsStreamAsync();
+            //return new StreamReader(stream);
         }
 
         /*

@@ -32,7 +32,7 @@ namespace AIPF_Console.MNIST_example
             return new Mnist();
         }
 
-        public void Metrics()
+        public async Task Metrics()
         {
             if (rawImageDataList == null)
                 rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
@@ -45,13 +45,13 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                metrics = mlManager.EvaluateAll(rawImageDataList);
+                metrics = await mlManager.EvaluateAll(rawImageDataList);
             }
 
             ConsoleHelper.PrintMetrics(metrics);
         }
 
-        public void Predict()
+        public async Task Predict()
         {
             // Digit = 6
             VectorRawImage rawImageToPredict = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
@@ -62,67 +62,56 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                predictedImage = mlManager.Predict(rawImageToPredict);
+                predictedImage = await mlManager.Predict(rawImageToPredict);
                 
             }
             ConsoleHelper.PrintPrediction(predictedImage, 0);
         }
 
-        public void Train() { }
+        public async Task Train() {
 
-        async Task IExample.Train2()
-        {
             rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
             if (Program.REST)
             {
                 dynamic fitBody = new { ModelName = Name, Data = rawImageDataList };
-                using (var streamReader = RestService.PostStream("train", fitBody))
-                {
-                    while (!streamReader.EndOfStream)
-                    {
-                        var message = await streamReader.ReadLineAsync();
-                        Console.WriteLine($"Received price update: {message}");
-                    }
-                }
-            }
-            else
-            {
-                //var messageQueue = new MessageQueue<int>();
-                mlManager.CreatePipeline()
-                    //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
-                    // Using our custom image resizer
-                    //.Append(new CustomImageResizer())
-                    // OR using the ml.net default ResizeImages method
-                    .AddTransformer(new VectorImageResizer())
-                    .Append(new SdcaMaximumEntropy(90))
-                    .Build();
-
-                mlManager.Fit(rawImageDataList, out IDataView transformedDataView);
-
-                /*
-                new Thread(() => { mlManager.Fit(rawImageDataList, out IDataView transformedDataView); AnsiConsole.WriteLine("End fit!"); }).Start();
-
                 await AnsiConsole.Progress()
                     .Columns(new ProgressColumn[]
                         {
-                                            new TaskDescriptionColumn(),            // Task description
-                                            new ProgressBarColumn(),                // Progress bar
-                                            new PercentageColumn(),                 // Percentage
-                                            new SpinnerColumn(),  // Spinner
+                            new TaskDescriptionColumn(),    // Task description
+                            new ProgressBarColumn(),        // Progress bar
+                            new PercentageColumn(),         // Percentage
+                            new SpinnerColumn(),            // Spinner
                         })
                     .StartAsync(async ctx =>
                     {
-                        var random = new Random(DateTime.Now.Millisecond);
-                        var task1 = ctx.AddTask("Fitting pipeline", maxValue: 178200);
-                        await foreach (var message in messageQueue.DequeueAsync(@"Process#1", CancellationToken.None))
+                        var task1 = ctx.AddTask("Fitting pipeline", maxValue: 1);
+                        using (var streamReader = new StreamReader(await RestService.PostStream("train", fitBody)))
                         {
-                            task1.Increment(1);
-                            //if (message >= 178200) break;
+                            while (!streamReader.EndOfStream)
+                            {
+                                var progress = await streamReader.ReadLineAsync();
+                                task1.Value = double.Parse(progress);
+                                ctx.Refresh();
+                            }
                         }
                     });
-                */
+
             }
-            ConsoleHelper.FitLoader();
+            else
+            {
+                var messageQueue = new MessageQueue<double>();
+                mlManager.CreatePipeline()
+                    .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
+                    .Append(new VectorImageResizer())
+                    .Append(new SdcaMaximumEntropy(200))
+                    .Build();
+
+                var fittingTask = mlManager.Fit(rawImageDataList);
+                await ConsoleHelper.Loading("Fitting pipeline", @"Process#1", messageQueue);
+                await fittingTask;
+            }
+
+            AnsiConsole.WriteLine("Train complete!");
         }
 /*
         static void PredictUsingBitmapPipeline()

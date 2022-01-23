@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="MLManager\Actions\Modifiers\Images\**" />
+    <EmbeddedResource Remove="MLManager\Actions\Modifiers\Images\**" />
+    <None Remove="MLManager\Actions\Modifiers\Images\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Image\RawImages.cs" />
     <Compile Remove="MLManager\Evaluable.cs" />
     <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate - Copia.cs" />
@@ -32,10 +38,6 @@
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.6.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.10.0" />
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.6.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="MLManager\Actions\Modifiers\Images\" />
   </ItemGroup>
 
 </Project>

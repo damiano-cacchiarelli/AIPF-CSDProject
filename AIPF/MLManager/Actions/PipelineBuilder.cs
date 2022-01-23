@@ -3,6 +3,7 @@ using AIPF.MLManager.Modifiers;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AIPF.MLManager.Actions
 {
@@ -42,18 +43,20 @@ namespace AIPF.MLManager.Actions
 
             // Injecting some values inside the modifiers
             var nI = 0;
-            foreach (var trainerIterable in GetTransformersOfPipeline<ITrainerIterable>())
+            foreach (var trainerIterable in linkedPipeline.GetTransformersOfPipeline<ITrainerIterable>())
             {
                 nI = Math.Max(nI, trainerIterable.NumberOfIterations);
             }
-            foreach (var totalNumberRequirement in GetTransformersOfPipeline<ITotalNumberRequirement>())
+            foreach (var totalNumberRequirement in linkedPipeline.GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
                 totalNumberRequirement.TotalCount = (int)((dataView.GetRowCount() ?? 1) * nI);
             }
 
+            linkedPipeline.GetModificators().ForEach(m => m.Begin());
             Model = linkedPipeline.GetPipeline(mlContext).Fit(dataView);
             trasformedDataView = Model.Transform(dataView);
             predictionEngine = mlContext.Model.CreatePredictionEngine<I, O>(Model);
+            linkedPipeline.GetModificators().ForEach(m => m.End());
         }
 
         public O Predict(I toPredict)
@@ -69,7 +72,7 @@ namespace AIPF.MLManager.Actions
             List<MetricContainer> metrics = new List<MetricContainer>();
             Execute(dataView, out transformedDataView);
 
-            foreach (var evaluable in GetTransformersOfPipeline<IEvaluable>())
+            foreach (var evaluable in linkedPipeline.GetTransformersOfPipeline<IEvaluable>())
             {
                 var m = evaluable.Evaluate(mlContext, transformedDataView);
 
@@ -78,19 +81,6 @@ namespace AIPF.MLManager.Actions
             }
 
             return metrics;
-        }
-
-        private List<T> GetTransformersOfPipeline<T>() where T : class
-        {
-            List<T> transformers = new List<T>();
-            foreach (var p in linkedPipeline)
-            {
-                if (p.GetModificator() is T)
-                {
-                    transformers.Add(p.GetModificator() as T);
-                }
-            }
-            return transformers;
         }
     }
 }

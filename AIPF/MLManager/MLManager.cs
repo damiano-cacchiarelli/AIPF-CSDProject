@@ -1,9 +1,9 @@
 ﻿using AIPF.MLManager.Actions;
-using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AIPF.MLManager
 {
@@ -35,23 +35,25 @@ namespace AIPF.MLManager
             return mlBuilder;
         }
 
-        public void Fit(IEnumerable<I> rawData, out IDataView transformedDataView)
+        public async Task<IDataView> Fit(IEnumerable<I> rawData)
         {
-            Fit(mlContext.Data.LoadFromEnumerable(rawData), out transformedDataView);
+            return await Fit(mlContext.Data.LoadFromEnumerable(rawData));
         }
 
-        public void Fit(IDataView rawData, out IDataView transformedDataView)
+        public async Task<IDataView> Fit(IDataView rawData)
         {
-            rawData.Preview();
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
-            mlBuilder.Fit(rawData, out transformedDataView);
-            trained = true;
-            //this.MessageQueue.Unregister("1");
+            return await Task.Run(() => {
+                IDataView transformedDataView = null;
+                mlBuilder.Fit(rawData, out transformedDataView);
+                trained = true;
+                return transformedDataView;
+            });
         }
 
-        public O Predict(I toPredict)
+        public async Task<O> Predict(I toPredict)
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
@@ -60,15 +62,15 @@ namespace AIPF.MLManager
             if (toPredict == null)
                 throw new Exception("You must pass a valid item!");
 
-            return mlBuilder.Predict(toPredict);
+            return await Task.Run(() => mlBuilder.Predict(toPredict));
         }
 
-        public List<MetricContainer> EvaluateAll(IEnumerable<I> data)
+        public async Task<List<MetricContainer>> EvaluateAll(IEnumerable<I> data)
         {
-            return EvaluateAll(mlContext.Data.LoadFromEnumerable(data));
+            return await Task.Run(() => EvaluateAll(mlContext.Data.LoadFromEnumerable(data)));
         }
 
-        public List<MetricContainer> EvaluateAll(IDataView dataView)
+        public async Task<List<MetricContainer>> EvaluateAll(IDataView dataView)
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
@@ -77,7 +79,7 @@ namespace AIPF.MLManager
             if (!trained)
                 throw new Exception("You must call Fit() before EvaluateAll()!");
 
-            return mlBuilder.EvaluateAll(dataView);
+            return await Task.Run(() => mlBuilder.EvaluateAll(dataView));
         }
     }
 }

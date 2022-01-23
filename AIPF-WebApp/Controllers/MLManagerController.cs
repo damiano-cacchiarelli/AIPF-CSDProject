@@ -19,9 +19,9 @@ namespace AIPF_RESTController.Controllers
     public class MLManagerController : ControllerBase
     {
         private readonly MLService MLService;
-        private readonly MessageQueue<int> MessageQueue;
+        private readonly MessageQueue<double> MessageQueue;
 
-        public MLManagerController(MessageQueue<int> messageQueue)
+        public MLManagerController(MessageQueue<double> messageQueue)
         {
             MLService = new MLService(messageQueue);
             MessageQueue = messageQueue;
@@ -41,17 +41,20 @@ namespace AIPF_RESTController.Controllers
             StreamWriter streamWriter = new StreamWriter(Response.Body);
 
             //MessageQueue.Register(id);
-            MLService.Fit(value);
+            var taskFit = MLService.Fit(value);
 
             try
             {
                 //await MessageQueue.EnqueueAsync(id, $"Subscribed to id {id}", HttpContext.RequestAborted);
 
-                await foreach (var message in MessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
+                await foreach (var percentage in MessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
                 {
-                    await streamWriter.WriteLineAsync($"{DateTime.Now} {message}");
+                    await streamWriter.WriteLineAsync($"{percentage}");
                     await streamWriter.FlushAsync();
+                    if (percentage >= 1) break;
                 }
+
+                await taskFit;
             }
             catch (OperationCanceledException)
             {
@@ -79,7 +82,7 @@ namespace AIPF_RESTController.Controllers
         [HttpPut("metrics")]
         public IEnumerable<MetricContainer> Metrics([FromBody] FitBody value)
         {
-            return MLService.Metrics(value);
+            return MLService.Metrics(value).Result;
         }
 
         [HttpGet]
@@ -97,9 +100,9 @@ namespace AIPF_RESTController.Controllers
             {
                 //await MessageQueue.EnqueueAsync(id, $"Subscribed to id {id}", HttpContext.RequestAborted);
 
-                await foreach (var message in MessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
+                await foreach (var progress in MessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
                 {
-                    await streamWriter.WriteLineAsync($"{DateTime.Now} {message}");
+                    await streamWriter.WriteLineAsync(progress.ToString());
                     await streamWriter.FlushAsync();
                 }
             }

@@ -15,9 +15,9 @@ namespace AIPF.MLManager.Modifiers
         public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
 
-        protected IMessageQueue<int> messageQueue;
+        protected IMessageQueue<double> messageQueue;
 
-        public ProgressIndicator(string processName, IMessageQueue<int> messageQueue)
+        public ProgressIndicator(string processName, IMessageQueue<double> messageQueue)
         {
             this.processName = processName;
             this.messageQueue = messageQueue;
@@ -29,6 +29,11 @@ namespace AIPF.MLManager.Modifiers
             this.processName = processName;
         }
 
+        void IModificator.Begin()
+        {
+            processed = 0;
+        }
+
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
             return mlContext.Transforms.CustomMapping<I, I>(MappingOperation, null);
@@ -37,20 +42,19 @@ namespace AIPF.MLManager.Modifiers
         private void MappingOperation(I input, I output)
         {
             input.Copy(ref output);
-            Interlocked.Increment(ref processed);
-            messageQueue.EnqueueAsync(processName, processed, CancellationToken.None);
-        }
-
-        protected virtual void Log()
-        {
-            /*
             lock (_sync)
             {
-                if (Processed == 0) ConsoleHelper.WriteLine("");
-                Interlocked.Increment(ref processed);
-                consoleProgress.Report((double)Processed / TotalCount);
-                //ConsoleHelper.WriteLine($"{processName} - Work  in progress... {Processed} / {TotalCount}");
-            }*/
+                if (processed+1 < TotalCount)
+                {
+                    Interlocked.Increment(ref processed);
+                }
+                messageQueue.EnqueueAsync(processName, ((double)processed) / TotalCount, CancellationToken.None);
+            }
+        }
+
+        void IModificator.End()
+        {
+            messageQueue.EnqueueAsync(processName, 1, CancellationToken.None);
         }
     }
 }
