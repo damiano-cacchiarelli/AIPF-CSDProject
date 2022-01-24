@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace AIPF_WebApp
+namespace AIPF_RESTController
 {
     public class Program
     {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,10 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="RobotLoccioni-example\Modifiers\**" />
+    <EmbeddedResource Remove="RobotLoccioni-example\Modifiers\**" />
+    <None Remove="RobotLoccioni-example\Modifiers\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AIPF\AIPF.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="RobotLoccioni-example\Data\Onnx\" />
     <Folder Include="TaxiFare-example\Modifiers\" />
   </ItemGroup>
 

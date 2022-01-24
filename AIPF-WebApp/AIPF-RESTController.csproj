@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>AIPF_RESTController</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AIPF-Console\AIPF-Console.csproj" />
+    <ProjectReference Include="..\AIPF\AIPF.csproj" />
+  </ItemGroup>
+
+
+</Project>

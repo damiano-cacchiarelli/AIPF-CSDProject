@@ -1,87 +1,80 @@
 ﻿using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
+using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF.Models.Taxi;
+using AIPF_Console.Utils;
 using Microsoft.ML;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIPF_Console.TaxiFare_example
 {
     public class TaxiFare : IExample
     {
-        private string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
+
+        public string Name => "Taxi-Fare";
+
+        protected TaxiFare()
+        {
+
+        }
 
         public static IExample Start()
         {
             return new TaxiFare();
-            
+
         }
 
-        public void train()
+        public async Task Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
-            mlManager.CreatePipeline()
-                .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
-                .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
-                .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
-                .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
-                .Build()
-                .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
-                .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
-                .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
-                .Append(new DeleteColumn<object>("input"))
-                .Append(new RenameColumn2<object>("variable", "input"))
-                .Append(new DeleteColumn<object>("variable"))
-                .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
-                .Build();
 
-            var data = new RawStringTaxiFare[] { };
-            mlManager.Fit(data, out var dataView);
+            if (Program.REST)
+            {
+                dynamic fitBody = new { ModelName = Name, Data = new object[0] };
+                RestService.Post<string>("train", fitBody);
+            }
+            else
+            {
 
-            AnsiConsole.Progress()
-                .Columns(new ProgressColumn[]
-                    {
-                        new TaskDescriptionColumn(),            // Task description
-                        new ProgressBarColumn(),                // Progress bar
-                        new PercentageColumn(),                 // Percentage
-                        new SpinnerColumn(),  // Spinner
-                    })
-                .Start(ctx =>
-                {
-                    var random = new Random(DateTime.Now.Millisecond);
-                    var task1 = ctx.AddTask("Preparing pipeline");
-                    var task2 = ctx.AddTask("Fitting model", autoStart: false).IsIndeterminate();
+                mlManager.CreatePipeline()
+                    .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
+                    .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
+                    .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
+                    .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
+                    .Build()
+                    .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
+                    .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
+                    .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
+                    .Append(new DeleteColumn<object>("input"))
+                    .Append(new RenameColumn2<object>("variable", "input"))
+                    .Append(new DeleteColumn<object>("variable"))
+                    .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
+                    .Build();
 
-                    while (!ctx.IsFinished)
-                    {
-                        task1.Increment(10 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
+                var data = new RawStringTaxiFare[] { };
+                var dataView = await mlManager.Fit(data);
+            }
 
-                    task2.StartTask();
-                    task2.IsIndeterminate(false);
-                    while (!ctx.IsFinished)
-                    {
-                        task2.Increment(8 * random.NextDouble());
-                        Thread.Sleep(75);
-                    }
-                });
+            ConsoleHelper.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public void predict()
+        public async Task Predict()
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -112,8 +105,16 @@ namespace AIPF_Console.TaxiFare_example
             table.AddColumn("Passenger count");
             table.AddColumn("[red]Fare amount[/]");
 
+            PredictedFareAmount predictedValue;
+            if (Program.REST)
+            {
+                predictedValue = RestService.Put<PredictedFareAmount>($"predict/{Name}", toPredict).Result;
+            }
+            else
+            {
+                predictedValue = await mlManager.Predict(toPredict);
+            }
 
-            var predictedValue = mlManager.Predict(toPredict);
 
 
             var values = new string[]{
@@ -131,17 +132,22 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.Write(table);
         }
 
-        public void metrics()
+        public async Task Metrics()
         {
-            var metrics = mlManager.EvaluateAll(mlManager.Loader.LoadFile($"{dir}/Data/train_mini.csv"));
-            if (metrics.Count == 0 || true)
+            List<MetricContainer> metrics;
+            var data = mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv");
+            if (Program.REST)
             {
-                AnsiConsole.WriteLine("No available metrics.");
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
+                dynamic fitBody = new { ModelName = Name, Data = rawDataList };
+                metrics = RestService.Put<List<MetricContainer>>("metrics", fitBody).Result;
             }
             else
             {
-                metrics.ForEach(m => AnsiConsole.WriteLine(m.ToString()));
+                metrics = await mlManager.EvaluateAll(data);
             }
+
+            ConsoleHelper.PrintMetrics(metrics);
         }
     }
 }
