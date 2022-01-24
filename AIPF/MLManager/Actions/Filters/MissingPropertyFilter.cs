@@ -24,19 +24,19 @@ namespace AIPF.MLManager.Actions.Filters
 
         public void Execute(IDataView dataView, out IDataView trasformedDataView)
         {
-            trasformedDataView = MLContext.Data.FilterRowsByMissingValues(dataView, columnNames);
-            //trasformedDataView = MLContext.Data.FilterByCustomPredicate<I>(dataView, i => !ApplyFilter(i));
+            trasformedDataView = MLContext.Data.FilterByCustomPredicate<I>(dataView, i => !ApplyFilter(i));
         }
-        
+
+       /*
         public bool ApplyFilter(I item)
         {
             var dataView = MLContext.Data.LoadFromEnumerable(new[] { item });
             Execute(dataView, out IDataView trasformedDataView);
             return trasformedDataView.Preview().RowView.Length == 1;
         }
-
+       */
         
-        public bool ApplyFilter2(I item)
+        public bool ApplyFilter(I item)
         {
             foreach (var name in columnNames)
             {
@@ -75,7 +75,7 @@ namespace AIPF.MLManager.Actions.Filters
         private string[] GetAllProperties()
         {
             return typeof(I).GetProperties()
-                .Where(field => !field.PropertyType.IsAssignableFrom(typeof(string)))
+                //.Where(field => !field.PropertyType.IsAssignableFrom(typeof(string)))
                 .Select(field => field.Name)
                 .ToArray();
         }

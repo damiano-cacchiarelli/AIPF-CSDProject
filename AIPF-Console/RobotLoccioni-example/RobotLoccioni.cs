@@ -42,8 +42,8 @@ namespace AIPF_Console.RobotLoccioni_example
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
                 mlManager.CreatePipeline()
-                    .AddFilter(new MissingPropertyFilter<RobotData>())
-                    .AddFilter(i => i.EventType != 0)
+                    //.AddFilter(new MissingPropertyFilter<RobotData>())
+                    //.AddFilter(i => i.EventType != 0)
                     .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
                     .Append(new ApplyOnnxModel<RobotData, OutputMeasure>($"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx"))
                     .Build();

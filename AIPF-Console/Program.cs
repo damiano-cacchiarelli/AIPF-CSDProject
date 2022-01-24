@@ -10,7 +10,7 @@ namespace AIPF_Console
 {
     class Program
     {
-        public static readonly bool REST = true;
+        public static readonly bool REST = false;
         private static IExample example = null;
         private static readonly Dictionary<string, Action<IExample>> Commands = new Dictionary<string, Action<IExample>>()
             {

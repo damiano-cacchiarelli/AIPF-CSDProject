@@ -4,8 +4,9 @@ namespace AIPF.MLManager.Modifiers
 {
     public class ProgressPercentageIndicator<I> : ProgressIndicator<I> where I : class, ICopy<I>, new()
     {
-
-        
+        public ProgressPercentageIndicator(string processName) : base(processName)
+        {
+        }
 
         public float Percentage
         {
