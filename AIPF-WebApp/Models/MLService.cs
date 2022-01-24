@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
+using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
@@ -28,7 +29,7 @@ namespace AIPF_RESTController.Models
         private MLManager<VectorRawImage, OutputImage> mnistMlManager = new MLManager<VectorRawImage, OutputImage>();
         private MLManager<RobotData, OutputMeasure> robotMlManager = new MLManager<RobotData, OutputMeasure>();
 
-        public MLService()
+        public MLService(IMessageQueue<double> messageQueue)
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName + "/AIPF-Console";
 
@@ -48,11 +49,11 @@ namespace AIPF_RESTController.Models
                 .Build();
 
             mnistMlManager.CreatePipeline()
-                //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
+                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method
-                .AddTransformer(new VectorImageResizer())
+                .Append(new VectorImageResizer())
                 .Append(new SdcaMaximumEntropy(3))
                 .Build();
 
@@ -66,64 +67,65 @@ namespace AIPF_RESTController.Models
                 .Build();
         }
 
-        public void Fit(FitBody fitBody)
+        public Task<IDataView> Fit(FitBody fitBody)
         {
             switch (fitBody.ModelName)
             {
                 case "Taxi-Fare":
                     var list1 = CastListObject<RawStringTaxiFare>(fitBody.Data);
-                    taxiFareMlManager.Fit(list1, out var _);
-                    break;
+                    return taxiFareMlManager.Fit(list1);
                 case "MNIST":
                     var list2 = CastListObject<VectorRawImage>(fitBody.Data);
-                    mnistMlManager.Fit(list2, out var _);
-                    break;
+                    return mnistMlManager.Fit(list2);
                 case "Robot-Loccioni":
                     var list3 = CastListObject<RobotData>(fitBody.Data);
-                    robotMlManager.Fit(list3, out var _);
-                    break;
+                    return robotMlManager.Fit(list3);
                 default:
                     throw new ArgumentException("Model name not found");
             }
         }
 
-        public object Predict(string modelName, JsonElement value)
+        public async Task<object> Predict(string modelName, JsonElement value)
         {
             switch (modelName)
             {
                 case "Taxi-Fare":
                     RawStringTaxiFare obj =
                         JsonSerializer.Deserialize<RawStringTaxiFare>(value.GetRawText());
-                    return taxiFareMlManager.Predict(obj);
+                    return await taxiFareMlManager.Predict(obj);
                 case "MNIST":
                     VectorRawImage obj2 =
                         JsonSerializer.Deserialize<VectorRawImage>(value.GetRawText());
-                    return mnistMlManager.Predict(obj2);
+                    return await mnistMlManager.Predict(obj2);
                 case "Robot-Loccioni":
                     RobotData obj3 = JsonSerializer.Deserialize<RobotData>(value.GetRawText());
-                    return robotMlManager.Predict(obj3);
+                    return await robotMlManager.Predict(obj3);
                 default:
                     throw new ArgumentException("Model name not found");
             }
         }
 
-        public List<MetricContainer> Metrics (FitBody fitBody)
+        public async Task<List<MetricContainer>> Metrics(FitBody fitBody)
         {
-
+            List<MetricContainer> metrics = null;
             switch (fitBody.ModelName)
             {
                 case "Taxi-Fare":
                     var list1 = CastListObject<RawStringTaxiFare>(fitBody.Data);
-                    return taxiFareMlManager.EvaluateAll(list1);
+                    metrics = await taxiFareMlManager.EvaluateAll(list1);
+                    break;
                 case "MNIST":
                     var list2 = CastListObject<VectorRawImage>(fitBody.Data);
-                    return mnistMlManager.EvaluateAll(list2);
+                    metrics = await mnistMlManager.EvaluateAll(list2);
+                    break;
                 case "Robot-Loccioni":
                     var list3 = CastListObject<RobotData>(fitBody.Data);
-                    return robotMlManager.EvaluateAll(list3);
+                    metrics = await robotMlManager.EvaluateAll(list3);
+                    break;
                 default:
                     throw new ArgumentException("Model name not found");
             }
+            return metrics;
         }
 
         private List<T> CastListObject<T>(IList<JsonElement> values)

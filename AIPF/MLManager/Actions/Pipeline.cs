@@ -8,13 +8,14 @@ namespace AIPF.MLManager.Actions
 {
     public class Pipeline<T, O> : IPipeline where T : class, new() where O : class, new()
     {
-        private readonly IModificator modificator;
         private readonly IMLBuilder mlBuilder;
-        private IPipeline next = null;
+    
+        public IPipeline Next { get; private set; } = null;
+        public IModificator Modificator { get; private set; }
 
         public Pipeline(IModificator modificator, IMLBuilder mlBuilder)
         {
-            this.modificator = modificator;
+            Modificator = modificator;
             this.mlBuilder = mlBuilder;
         }
 
@@ -24,7 +25,7 @@ namespace AIPF.MLManager.Actions
                 throw new Exception("The modificator cannot be null!");
             
             var pipeline = new Pipeline<R, O>(modifier, mlBuilder);
-            next = pipeline;
+            Next = pipeline;
             return pipeline;
         }
 
@@ -37,34 +38,17 @@ namespace AIPF.MLManager.Actions
 
         public IPipeline GetNext()
         {
-            return next;
+            return Next;
         }
 
-        public IModificator GetModificator()
+        public List<IModificator> GetModificators()
         {
-            return modificator;
-        }
-
-        /*
-        public void PrintPipelineStructure()
-        {
-            int index = 1;
+            var modificators = new List<IModificator>();
             foreach (var p in this)
             {
-                Console.WriteLine($"{index++} - { p.GetModificator().GetType() }");
+                modificators.Add(p.Modificator);
             }
-            Console.WriteLine("");
-        }
-        */
-
-        public int GetModifierCount()
-        {
-            int index = 0;
-            foreach (var p in this)
-            {
-                index++;
-            }
-            return index;
+            return modificators;
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -72,8 +56,8 @@ namespace AIPF.MLManager.Actions
             IEstimator<ITransformer> pipeline = null;
             foreach (var p in this)
             {
-                if (pipeline == null) pipeline = p.GetModificator().GetPipeline(mlContext);
-                else pipeline = pipeline.Append(p.GetModificator().GetPipeline(mlContext));
+                if (pipeline == null) pipeline = p.Modificator.GetPipeline(mlContext);
+                else pipeline = pipeline.Append(p.Modificator.GetPipeline(mlContext));
             }
             return pipeline;
         }
@@ -84,7 +68,7 @@ namespace AIPF.MLManager.Actions
             while (current != null)
             {
                 yield return current;
-                current = current.GetNext();
+                current = current.Next;
             }
         }
 

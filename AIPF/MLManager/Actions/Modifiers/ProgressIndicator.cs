@@ -1,4 +1,5 @@
-﻿using Microsoft.ML;
+﻿using AIPF.MLManager.EventQueue;
+using Microsoft.ML;
 using System;
 using System.Threading;
 
@@ -13,12 +14,24 @@ namespace AIPF.MLManager.Modifiers
         private int processed = 0;
         public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
-        //protected ConsoleProgress consoleProgress;
+
+        protected IMessageQueue<double> messageQueue;
+
+        public ProgressIndicator(string processName, IMessageQueue<double> messageQueue)
+        {
+            this.processName = processName;
+            this.messageQueue = messageQueue;
+            this.messageQueue.Register(processName);
+        }
 
         public ProgressIndicator(string processName)
         {
             this.processName = processName;
-            //consoleProgress = new ConsoleProgress($"{processName} - Work  in progress...");
+        }
+
+        void IModificator.Begin()
+        {
+            processed = 0;
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -28,21 +41,20 @@ namespace AIPF.MLManager.Modifiers
 
         private void MappingOperation(I input, I output)
         {
-            /*
             input.Copy(ref output);
-            Log();*/
-        }
-
-        protected virtual void Log()
-        {
-            /*
             lock (_sync)
             {
-                if (Processed == 0) ConsoleHelper.WriteLine("");
-                Interlocked.Increment(ref processed);
-                consoleProgress.Report((double)Processed / TotalCount);
-                //ConsoleHelper.WriteLine($"{processName} - Work  in progress... {Processed} / {TotalCount}");
-            }*/
+                if (processed+1 < TotalCount)
+                {
+                    Interlocked.Increment(ref processed);
+                }
+                messageQueue.EnqueueAsync(processName, ((double)processed) / TotalCount, CancellationToken.None);
+            }
+        }
+
+        void IModificator.End()
+        {
+            messageQueue.EnqueueAsync(processName, 1, CancellationToken.None);
         }
     }
 }

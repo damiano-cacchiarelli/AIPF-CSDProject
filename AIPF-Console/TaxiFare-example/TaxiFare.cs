@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIPF_Console.TaxiFare_example
 {
@@ -37,7 +38,7 @@ namespace AIPF_Console.TaxiFare_example
 
         }
 
-        public void Train()
+        public async Task Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
 
@@ -65,7 +66,7 @@ namespace AIPF_Console.TaxiFare_example
                     .Build();
 
                 var data = new RawStringTaxiFare[] { };
-                mlManager.Fit(data, out var dataView);
+                var dataView = await mlManager.Fit(data);
             }
 
             ConsoleHelper.FitLoader();
@@ -73,7 +74,7 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public void Predict()
+        public async Task Predict()
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -111,7 +112,7 @@ namespace AIPF_Console.TaxiFare_example
             }
             else
             {
-                predictedValue = mlManager.Predict(toPredict);
+                predictedValue = await mlManager.Predict(toPredict);
             }
 
 
@@ -131,7 +132,7 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.Write(table);
         }
 
-        public void Metrics()
+        public async Task Metrics()
         {
             List<MetricContainer> metrics;
             var data = mlManager.Loader.LoadFile($"{IExample.Dir}/TaxiFare-example/Data/train_mini.csv");
@@ -143,7 +144,7 @@ namespace AIPF_Console.TaxiFare_example
             }
             else
             {
-                metrics = mlManager.EvaluateAll(data);
+                metrics = await mlManager.EvaluateAll(data);
             }
 
             ConsoleHelper.PrintMetrics(metrics);

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using AIPF_Console.MNIST_example.Model;
 using Spectre.Console;
@@ -40,6 +42,27 @@ namespace AIPF_Console.Utils
                         Thread.Sleep(75);
                     }
                 });
+        }
+
+        public static async Task Loading(string taskName, string messageQueueId, MessageQueue<double> messageQueue)
+        {
+            await AnsiConsole.Progress()
+                    .Columns(new ProgressColumn[]
+                        {
+                            new TaskDescriptionColumn(),    // Task description
+                            new ProgressBarColumn(),        // Progress bar
+                            new PercentageColumn(),         // Percentage
+                            new SpinnerColumn(),            // Spinner
+                        })
+                    .StartAsync(async ctx =>
+                    {
+                        var task1 = ctx.AddTask(taskName, maxValue: 1);
+                        await foreach (var progress in messageQueue.DequeueAsync(messageQueueId, CancellationToken.None))
+                        {
+                            task1.Value = progress;
+                            if (task1.IsFinished) break;
+                        }
+                    });
         }
 
         public static string MetricContainerToString(MetricContainer metricContainer)

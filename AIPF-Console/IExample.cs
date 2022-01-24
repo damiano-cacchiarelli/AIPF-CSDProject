@@ -1,5 +1,5 @@
 ﻿using System.IO;
-
+using System.Threading.Tasks;
 
 namespace AIPF_Console
 {
@@ -9,11 +9,11 @@ namespace AIPF_Console
 
         public string Name {  get;  }
 
-        public void Train();
+        public Task Train();
 
-        public void Predict();
+        public Task Predict();
 
-        public void Metrics();
+        public Task Metrics();
 
     }
 }

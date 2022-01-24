@@ -8,6 +8,7 @@ using AIPF_Console.Utils;
 using Spectre.Console;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AIPF_Console.RobotLoccioni_example
 {
@@ -28,7 +29,7 @@ namespace AIPF_Console.RobotLoccioni_example
         }
 
 
-        public void Train()
+        public async Task Train()
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
 
@@ -49,7 +50,7 @@ namespace AIPF_Console.RobotLoccioni_example
                     .Build();
 
                 var data = new RobotData[] { };
-                mlManager.Fit(data, out var dataView);
+                var dataView = await mlManager.Fit(data);
             }
 
             ConsoleHelper.FitLoader();
@@ -57,7 +58,7 @@ namespace AIPF_Console.RobotLoccioni_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public void Predict()
+        public async Task Predict()
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -117,7 +118,7 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else
             {
-                predictedValue = mlManager.Predict(toPredict);
+                predictedValue = await mlManager.Predict(toPredict);
             }
 
             var values = new string[]{
@@ -143,7 +144,7 @@ namespace AIPF_Console.RobotLoccioni_example
             AnsiConsole.Write(table);
         }
 
-        public void Metrics()
+        public async Task Metrics()
         {
             var metrics = new List<MetricContainer>();
             var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv");
@@ -155,7 +156,7 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else
             {
-                metrics = mlManager.EvaluateAll(data);
+                metrics = await mlManager.EvaluateAll(data);
             }
 
             ConsoleHelper.PrintMetrics(metrics);

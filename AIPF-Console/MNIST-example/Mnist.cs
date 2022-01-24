@@ -1,4 +1,5 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
@@ -10,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AIPF_Console.MNIST_example
 {
@@ -29,7 +32,7 @@ namespace AIPF_Console.MNIST_example
             return new Mnist();
         }
 
-        public void Metrics()
+        public async Task Metrics()
         {
             if (rawImageDataList == null)
                 rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
@@ -42,13 +45,13 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                metrics = mlManager.EvaluateAll(rawImageDataList);
+                metrics = await mlManager.EvaluateAll(rawImageDataList);
             }
 
             ConsoleHelper.PrintMetrics(metrics);
         }
 
-        public void Predict()
+        public async Task Predict()
         {
             // Digit = 6
             VectorRawImage rawImageToPredict = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
@@ -59,34 +62,56 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                predictedImage = mlManager.Predict(rawImageToPredict);
+                predictedImage = await mlManager.Predict(rawImageToPredict);
                 
             }
             ConsoleHelper.PrintPrediction(predictedImage, 0);
         }
 
-        public void Train()
-        {
+        public async Task Train() {
+
             rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
             if (Program.REST)
             {
                 dynamic fitBody = new { ModelName = Name, Data = rawImageDataList };
-                RestService.Post<string>("train", fitBody);
+                await AnsiConsole.Progress()
+                    .Columns(new ProgressColumn[]
+                        {
+                            new TaskDescriptionColumn(),    // Task description
+                            new ProgressBarColumn(),        // Progress bar
+                            new PercentageColumn(),         // Percentage
+                            new SpinnerColumn(),            // Spinner
+                        })
+                    .StartAsync(async ctx =>
+                    {
+                        var task1 = ctx.AddTask("Fitting pipeline", maxValue: 1);
+                        using (var streamReader = new StreamReader(await RestService.PostStream("train", fitBody)))
+                        {
+                            while (!streamReader.EndOfStream)
+                            {
+                                var progress = await streamReader.ReadLineAsync();
+                                task1.Value = double.Parse(progress);
+                                ctx.Refresh();
+                            }
+                        }
+                    });
+
             }
             else
             {
+                var messageQueue = new MessageQueue<double>();
                 mlManager.CreatePipeline()
-                    //.AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
-                    // Using our custom image resizer
-                    //.Append(new CustomImageResizer())
-                    // OR using the ml.net default ResizeImages method
-                    .AddTransformer(new VectorImageResizer())
-                    .Append(new SdcaMaximumEntropy(3))
+                    .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
+                    .Append(new VectorImageResizer())
+                    .Append(new SdcaMaximumEntropy(200))
                     .Build();
 
-                mlManager.Fit(rawImageDataList, out IDataView transformedDataView);
+                var fittingTask = mlManager.Fit(rawImageDataList);
+                await ConsoleHelper.Loading("Fitting pipeline", @"Process#1", messageQueue);
+                await fittingTask;
             }
-            ConsoleHelper.FitLoader();
+
+            AnsiConsole.WriteLine("Train complete!");
         }
 /*
         static void PredictUsingBitmapPipeline()
