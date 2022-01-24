@@ -1,22 +1,23 @@
 ﻿using AIPF.MLManager.Metrics;
 using Microsoft.ML;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AIPF.MLManager.Modifiers.TaxiFare
 {
-    public class ApplyOnnxModel<I, O> : IModifier<I, O>, IEvaluable
+    public class ApplyOnnxModel<I, O> : IModifier<I, O>, IEvaluable where O : class, new()
     {
         private string modelPath;
         private string[] inputColumnNames;
         private string[] outputColumnNames;
 
-        private string algo;
 
-        public ApplyOnnxModel(string modelPath, string[] inputColumnNames = null, string[] outputColumnNames = null, string algo = null)
+        public ApplyOnnxModel(string modelPath, string[] inputColumnNames = null, string[] outputColumnNames = null)
         {
             this.modelPath = modelPath;
             this.inputColumnNames = inputColumnNames;
             this.outputColumnNames = outputColumnNames;
-            this.algo = algo;
         }
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
@@ -28,13 +29,6 @@ namespace AIPF.MLManager.Modifiers.TaxiFare
 
         public MetricContainer Evaluate(MLContext mlContext, IDataView data)
         {
-            if (algo != null && algo.Equals("Binary"))
-            {
-                var metricContainer = new MetricContainer(algo);
-                var metrics = mlContext.BinaryClassification.Evaluate(data);
-                metricContainer.AddMetric(new MetricOptions(nameof(metrics.F1Score), metrics.F1Score.ToString()));
-                return metricContainer;
-            }
             return null;
         }
     }

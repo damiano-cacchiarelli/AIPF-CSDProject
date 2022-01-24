@@ -11,7 +11,7 @@ namespace AIPF_Console.RobotLoccioni_example.Model
         [LoadColumn(0)]
         public string DateAsString { get; set; }
         [LoadColumn(1)]
-        public int EventType { get; set; }
+        public float EventType { get; set; }
         [LoadColumn(2)]
         public float MaxCurrentAxis1 { get; set; }
         [LoadColumn(3)]
