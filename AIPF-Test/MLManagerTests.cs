@@ -10,6 +10,7 @@ using Microsoft.ML;
 using NUnit.Framework;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace AIPF_Test
 {
@@ -72,13 +73,13 @@ namespace AIPF_Test
             var mlManager = new MLManager<object, object>();
             var obj = new object[] { };
 
-            Assert.Throws<Exception>(() => mlManager.Fit(obj, out IDataView _));
-            Assert.Throws<Exception>(() => mlManager.Predict(null));
-            Assert.Throws<Exception>(() => mlManager.EvaluateAll(obj));
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Fit(obj));
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Predict(null));
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.EvaluateAll(obj));
         }
 
         [Test]
-        public void MLManagerFit()
+        public async Task MLManagerFit()
         {
             var mlManager = new MLManager<RawStringTaxiFare, ProcessedTaxiFare>();
             mlManager.CreatePipeline()
@@ -88,21 +89,21 @@ namespace AIPF_Test
                 .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
                 .Build();
 
-            mlManager.Fit(new[] { longDistanceItem }, out var dataView);
+            var dataView = await mlManager.Fit(new[] { longDistanceItem });
             var preview = dataView.Preview();
             Assert.AreEqual(1, preview.RowView.Length);
 
-            mlManager.Fit(new[] { missingValueItem }, out dataView);
+            dataView = await mlManager.Fit(new[] { missingValueItem });
             preview = dataView.Preview();
             Assert.AreEqual(0, preview.RowView.Length);
 
-            mlManager.Fit(new[] { longDistanceItem, missingValueItem, tooPassengersItem }, out dataView);
+            dataView = await mlManager.Fit(new[] { longDistanceItem, missingValueItem, tooPassengersItem });
             preview = dataView.Preview();
             Assert.AreEqual(1, preview.RowView.Length);
         }
 
         [Test]
-        public void MLManagerPredict()
+        public async Task MLManagerPredict()
         {
             var mlManager = new MLManager<RawStringTaxiFare, ProcessedTaxiFare>();
             mlManager.CreatePipeline()
@@ -112,22 +113,22 @@ namespace AIPF_Test
                 .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
                 .Build();
 
-            Assert.Throws<Exception>(() => mlManager.Predict(longDistanceItem));
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Predict(longDistanceItem));
 
-            mlManager.Fit(new RawStringTaxiFare[] { }, out var _);
+            await mlManager.Fit(new RawStringTaxiFare[] { });
 
-            Assert.Throws<Exception>(() => mlManager.Predict(null), "Item null");
-            Assert.Throws<Exception>(() => mlManager.Predict(missingValueItem), "Missing values");
-            Assert.Throws<Exception>(() => mlManager.Predict(tooPassengersItem), "Too passengers");
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Predict(null), "Item null");
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Predict(missingValueItem), "Missing values");
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Predict(tooPassengersItem), "Too passengers");
 
-            var processed = mlManager.Predict(longDistanceItem);
+            var processed = await mlManager.Predict(longDistanceItem);
             Assert.AreEqual(35, processed.Date);
             Assert.AreEqual(2, processed.PassengersCount);
             Assert.AreEqual(5, processed.Distance);
         }
 
         [Test]
-        public void MLManagerPredict2()
+        public async Task MLManagerPredict2()
         {
             var mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
             mlManager.CreatePipeline()
@@ -145,10 +146,10 @@ namespace AIPF_Test
                 .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{directory}/Data/Onnx/skl_pca_linReg.onnx"))
                 .Build();
 
-            mlManager.Fit(new RawStringTaxiFare[] { }, out var _);
+            await mlManager .Fit(new RawStringTaxiFare[] { });
 
-            Assert.Throws<Exception>(() => mlManager.Predict(longDistanceItem), "Long distance");
-            var processed = mlManager.Predict(goodItem);
+            Assert.ThrowsAsync<Exception>(async () => await mlManager.Predict(longDistanceItem), "Long distance");
+            var processed = await mlManager.Predict(goodItem);
             Assert.IsTrue(processed.FareAmount.Length == 1);
             Assert.AreEqual(7.58416f, processed.FareAmount[0]);
         }

@@ -31,16 +31,16 @@ namespace AIPF_Test
 
             var pipeline = new Pipeline<MinutesTaxiFare, ProcessedTaxiFare>(parser, null);
             Assert.IsNull(pipeline.GetNext());
-            Assert.AreEqual(parser, pipeline.GetModificator());
-            Assert.AreEqual(1, pipeline.GetModifierCount());
+            Assert.AreEqual(parser, pipeline.GetModificators());
+            Assert.AreEqual(1, pipeline.GetModificators().Count);
 
             var pipeline2 = pipeline.Append(distance);
             Assert.IsNull(pipeline2.GetNext());
-            Assert.AreEqual(distance, pipeline2.GetModificator());
-            Assert.AreEqual(1, pipeline2.GetModifierCount());
+            Assert.AreEqual(distance, pipeline2.GetModificators());
+            Assert.AreEqual(1, pipeline2.GetModificators().Count);
 
             Assert.IsNotNull(pipeline.GetNext());
-            Assert.AreEqual(2, pipeline.GetModifierCount());
+            Assert.AreEqual(2, pipeline.GetModificators().Count);
 
             Assert.Throws<Exception>(() => pipeline.Append(nullDistance));
         }
