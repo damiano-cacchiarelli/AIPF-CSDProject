@@ -1,5 +1,6 @@
 ﻿using AIPF.MLManager.Actions;
 using AIPF.MLManager.Metrics;
+using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace AIPF.MLManager
 
         private MLBuilder<I, O> mlBuilder;
         private bool trained = false;
+        private static readonly ILogger logger = Program.loggerFactory.CreateLogger<MLManager<I,O>>();
 
         public MLLoader<I> Loader { get; private set; }
 
@@ -45,6 +47,7 @@ namespace AIPF.MLManager
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
 
+            logger.LogInformation("Fitting pipeline");
             return await Task.Run(() => {
                 IDataView transformedDataView = null;
                 mlBuilder.Fit(rawData, out transformedDataView);
@@ -61,7 +64,7 @@ namespace AIPF.MLManager
                 throw new Exception("You must call Fit() before Predict()!");
             if (toPredict == null)
                 throw new Exception("You must pass a valid item!");
-
+            logger.LogInformation("Predicting value");
             return await Task.Run(() => mlBuilder.Predict(toPredict));
         }
 
@@ -79,6 +82,7 @@ namespace AIPF.MLManager
             if (!trained)
                 throw new Exception("You must call Fit() before EvaluateAll()!");
 
+            logger.LogInformation("Evaluating all");
             return await Task.Run(() => mlBuilder.EvaluateAll(dataView));
         }
     }

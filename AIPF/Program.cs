@@ -9,15 +9,23 @@ using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Actions.Filters;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace AIPF
 {
     class Program
     {
+        public static ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder
+                .AddFilter("Microsoft", LogLevel.Warning)
+                .AddFilter("System", LogLevel.Warning)
+                .AddFilter("NonHostConsoleApp.Program", LogLevel.Debug)
+                .AddConsole();
+        });
+
         static void Main(string[] args)
         {
-
-            
             //PredictUsingVectorPipeline();
             //PredictUsingBitmapPipeline();
             //PredictUsingMorePipeline();
