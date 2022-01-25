@@ -62,7 +62,12 @@ namespace AIPF_Console.TaxiFare_example
                     .Append(new DeleteColumn<object>("input"))
                     .Append(new RenameColumn2<object>("variable", "input"))
                     .Append(new DeleteColumn<object>("variable"))
-                    .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
+                    .Append(new ApplyEvaluableOnnxModel<object, PredictedFareAmount, RegressionEvaluate>(
+                        $"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx",
+                        (i, o) => 
+                        {
+                            o.PredictedFareAmount = i.FareAmount[0];
+                        }))
                     .Build();
 
                 var data = new RawStringTaxiFare[] { };
@@ -144,7 +149,8 @@ namespace AIPF_Console.TaxiFare_example
             }
             else
             {
-                metrics = await mlManager.EvaluateAll(data);
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
+                metrics = await mlManager.EvaluateAll(rawDataList);
             }
 
             ConsoleHelper.PrintMetrics(metrics);

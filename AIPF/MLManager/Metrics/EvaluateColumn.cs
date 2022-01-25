@@ -35,6 +35,5 @@ namespace AIPF.MLManager.Metrics
             }
             return columns;
         }
-
     }
 }

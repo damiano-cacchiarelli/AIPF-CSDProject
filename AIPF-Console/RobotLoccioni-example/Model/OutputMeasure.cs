@@ -53,7 +53,10 @@ namespace AIPF_Console.RobotLoccioni_example.Model
         public float[] GetProbability() 
         {
             var dic = Probability.ToArray()[0];
-            return dic.Values.ToArray();
+            //dic.Add(0, 0);
+            var toReturn = new List<float>() { 0 };
+            toReturn.AddRange(dic.Values);
+            return toReturn.ToArray();
         }
     }
 }

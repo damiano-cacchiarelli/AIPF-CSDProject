@@ -1,12 +1,8 @@
-﻿using AIPF.MLManager.Metrics;
-using Microsoft.ML;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.ML;
 
 namespace AIPF.MLManager.Modifiers.TaxiFare
 {
-    public class ApplyOnnxModel<I, O> : IModifier<I, O>, IEvaluable where O : class, new()
+    public class ApplyOnnxModel<I, O> : IModifier<I, O> where O : class, new()
     {
         private string modelPath;
         private string[] inputColumnNames;
@@ -25,11 +21,6 @@ namespace AIPF.MLManager.Modifiers.TaxiFare
             inputColumnNames ??= new string[] { };
             outputColumnNames ??= new string[] { };
             return mlContext.Transforms.ApplyOnnxModel(modelFile: modelPath, outputColumnNames: outputColumnNames, inputColumnNames: inputColumnNames);
-        }
-
-        public MetricContainer Evaluate(MLContext mlContext, IDataView data)
-        {
-            return null;
         }
     }
 }

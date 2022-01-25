@@ -46,7 +46,7 @@ namespace AIPF_Console.RobotLoccioni_example
                     //.AddFilter(new MissingPropertyFilter<RobotData>())
                     //.AddFilter(i => i.EventType != 0)
                     .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
-                    .Append(new ApplyOnnxModelTemp<RobotData, OutputMeasure, MulticlassEvaluate>(
+                    .Append(new ApplyEvaluableOnnxModel<RobotData, OutputMeasure, MulticlassEvaluate>(
                         $"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx",
                         (i, o) => 
                         {
@@ -154,7 +154,7 @@ namespace AIPF_Console.RobotLoccioni_example
         public async Task Metrics()
         {
             var metrics = new List<MetricContainer>();
-            var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv");
+            var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv", ';');
             if (Program.REST)
             {
                 var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
