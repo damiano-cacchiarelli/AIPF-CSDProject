@@ -19,12 +19,11 @@ namespace AIPF_RESTController.Controllers
     public class MLManagerController : ControllerBase
     {
         private readonly MLService MLService;
-        private readonly MessageQueue<double> MessageQueue;
+        //private readonly MessageQueue<double> MessageQueue;
 
-        public MLManagerController(MessageQueue<double> messageQueue)
+        public MLManagerController()
         {
-            MLService = new MLService(messageQueue);
-            MessageQueue = messageQueue;
+            MLService = new MLService();
 
         }
 
@@ -47,7 +46,7 @@ namespace AIPF_RESTController.Controllers
             {
                 //await MessageQueue.EnqueueAsync(id, $"Subscribed to id {id}", HttpContext.RequestAborted);
 
-                await foreach (var percentage in MessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
+                await foreach (var percentage in MessageManager.IMessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
                 {
                     await streamWriter.WriteLineAsync($"{percentage}");
                     await streamWriter.FlushAsync();
@@ -66,7 +65,7 @@ namespace AIPF_RESTController.Controllers
             }
             finally
             {
-                MessageQueue.Unregister(@"Process#1");
+                //MessageManager.IMessageQueue.Unregister(@"Process#1");
             }
         }
 
@@ -100,7 +99,7 @@ namespace AIPF_RESTController.Controllers
             {
                 //await MessageQueue.EnqueueAsync(id, $"Subscribed to id {id}", HttpContext.RequestAborted);
 
-                await foreach (var progress in MessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
+                await foreach (var progress in MessageManager.IMessageQueue.DequeueAsync(@"Process#1", HttpContext.RequestAborted))
                 {
                     await streamWriter.WriteLineAsync(progress.ToString());
                     await streamWriter.FlushAsync();
@@ -116,7 +115,7 @@ namespace AIPF_RESTController.Controllers
             }
             finally
             {
-                MessageQueue.Unregister(id);
+                //MessageQueue.Unregister(id);
             }
         }
 

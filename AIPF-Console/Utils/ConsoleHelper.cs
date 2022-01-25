@@ -44,7 +44,7 @@ namespace AIPF_Console.Utils
                 });
         }
 
-        public static async Task Loading(string taskName, string messageQueueId, MessageQueue<double> messageQueue)
+        public static async Task Loading(string taskName, string messageQueueId)
         {
             await AnsiConsole.Progress()
                     .Columns(new ProgressColumn[]
@@ -57,7 +57,7 @@ namespace AIPF_Console.Utils
                     .StartAsync(async ctx =>
                     {
                         var task1 = ctx.AddTask(taskName, maxValue: 1);
-                        await foreach (var progress in messageQueue.DequeueAsync(messageQueueId, CancellationToken.None))
+                        await foreach (var progress in MessageManager.IMessageQueue.DequeueAsync(messageQueueId, CancellationToken.None))
                         {
                             task1.Value = progress;
                             if (task1.IsFinished) break;

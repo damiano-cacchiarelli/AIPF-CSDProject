@@ -99,15 +99,15 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                var messageQueue = new MessageQueue<double>();
+
                 mlManager.CreatePipeline()
-                    .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
+                    .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                     .Append(new VectorImageResizer())
                     .Append(new SdcaMaximumEntropy(200))
                     .Build();
 
                 var fittingTask = mlManager.Fit(rawImageDataList);
-                await ConsoleHelper.Loading("Fitting pipeline", @"Process#1", messageQueue);
+                await ConsoleHelper.Loading("Fitting pipeline", @"Process#1");
                 await fittingTask;
             }
 
