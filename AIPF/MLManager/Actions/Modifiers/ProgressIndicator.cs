@@ -15,14 +15,10 @@ namespace AIPF.MLManager.Modifiers
         public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
 
-        //protected IMessageQueue<double> messageQueue = MessageManager.IMessageQueue;
-
         public ProgressIndicator(string processName)
         {
             MessageManager.IMessageQueue.Register(processName);
-            MessageManager.IMessageQueue.DequeueAsync(processName, CancellationToken.None);
             this.processName = processName;
-
         }
 
         void IModificator.Begin()
@@ -52,9 +48,6 @@ namespace AIPF.MLManager.Modifiers
         void IModificator.End()
         {
             MessageManager.IMessageQueue.EnqueueAsync(processName, 1, CancellationToken.None);
-            //MessageManager.IMessageQueue.EnqueueAsync(processName, 0, CancellationToken.None);
-
-            //MessageManager.IMessageQueue.Unregister(processName);
         }
     }
 }

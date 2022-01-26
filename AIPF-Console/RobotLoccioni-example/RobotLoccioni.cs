@@ -60,10 +60,11 @@ namespace AIPF_Console.RobotLoccioni_example
                     .Build();
 
                 var data = new RobotData[] { };
-                var dataView = await mlManager.Fit(data);
-            }
+                var fitTask = mlManager.Fit(data);
 
-            ConsoleHelper.FitLoader();
+                await ConsoleHelper.Loading("Fitting model", $"{Name}Process#1");
+                await fitTask;
+            }
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -166,7 +167,7 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else
             {
-                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(5);
                 var taskMetrics = mlManager.EvaluateAll(rawDataList);
                 await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
                 metrics = await taskMetrics;

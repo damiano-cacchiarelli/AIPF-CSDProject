@@ -57,6 +57,7 @@ namespace AIPF_Console.Utils
                     .StartAsync(async ctx =>
                     {
                         var task1 = ctx.AddTask(taskName, maxValue: 1);
+                        var f = MessageManager.IMessageQueue;
                         await foreach (var progress in MessageManager.IMessageQueue.DequeueAsync(messageQueueId, CancellationToken.None))
                         {
                             task1.Value = progress;

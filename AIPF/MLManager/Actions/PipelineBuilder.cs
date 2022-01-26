@@ -29,30 +29,12 @@ namespace AIPF.MLManager.Actions
             return pipeline;
         }
 
-        /*
-        public void PrintPipelineStructure()
-        {
-            linkedPipeline.PrintPipelineStructure();
-        }
-        */
-
         public void Execute(IDataView dataView, out IDataView trasformedDataView)
         {
             if (linkedPipeline == null) 
                 throw new Exception("You must create a pipeline before");
 
-            // Injecting some values inside the modifiers
-            var nI = 1;
-            foreach (var trainerIterable in linkedPipeline.GetTransformersOfPipeline<ITrainerIterable>())
-            {
-                nI = Math.Max(nI, trainerIterable.NumberOfIterations);
-            }
-            foreach (var totalNumberRequirement in linkedPipeline.GetTransformersOfPipeline<ITotalNumberRequirement>())
-            {
-                var f = mlContext.Data.CreateEnumerable<I>(dataView, reuseRowObject: true).Count();
-                //(dataView.GetRowCount() ?? 1) 
-                totalNumberRequirement.TotalCount = (int)(f * nI);
-            }
+            InjectValuesOnPipeline(dataView);
 
             linkedPipeline.GetModificators().ForEach(m => m.Begin());
             Model = linkedPipeline.GetPipeline(mlContext).Fit(dataView);
@@ -72,7 +54,10 @@ namespace AIPF.MLManager.Actions
         public List<MetricContainer> Evaluate(IDataView dataView, out IDataView transformedDataView)
         {
             List<MetricContainer> metrics = new List<MetricContainer>();
-            Execute(dataView, out transformedDataView);
+
+            InjectValuesOnPipeline(dataView);
+            linkedPipeline.GetModificators().ForEach(m => m.Begin());
+            transformedDataView = Model.Transform(dataView);
 
             foreach (var evaluable in linkedPipeline.GetTransformersOfPipeline<IEvaluable>())
             {
@@ -82,7 +67,25 @@ namespace AIPF.MLManager.Actions
                     metrics.Add(m);
             }
 
+            linkedPipeline.GetModificators().ForEach(m => m.End());
+
             return metrics;
+        }
+
+        private void InjectValuesOnPipeline(IDataView dataView)
+        {
+            var nI = 1;
+            foreach (var trainerIterable in linkedPipeline.GetTransformersOfPipeline<ITrainerIterable>())
+            {
+                nI = Math.Max(nI, trainerIterable.NumberOfIterations);
+            }
+            foreach (var totalNumberRequirement in linkedPipeline.GetTransformersOfPipeline<ITotalNumberRequirement>())
+            {
+                long count = dataView.GetRowCount() ?? -1;
+                if (count == -1)
+                    count = mlContext.Data.CreateEnumerable<I>(dataView, reuseRowObject: true).Count();
+                totalNumberRequirement.TotalCount = (int)(count * nI);
+            }
         }
     }
 }

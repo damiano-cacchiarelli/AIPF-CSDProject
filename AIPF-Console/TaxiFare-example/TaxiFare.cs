@@ -73,10 +73,10 @@ namespace AIPF_Console.TaxiFare_example
                     .Build();
 
                 var data = new RawStringTaxiFare[] { };
-                var dataView = await mlManager.Fit(data);
+                var fitTask = mlManager.Fit(data);
+                await ConsoleHelper.Loading("Fitting model", $"{Name}Process#1");
+                await fitTask;
             }
-
-            ConsoleHelper.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -151,7 +151,6 @@ namespace AIPF_Console.TaxiFare_example
             }
             else
             {
-                //var rawDataList = mlManager.Loader.GetEnumerable(data)
                 var taskMetrics = mlManager.EvaluateAll(data);
                 await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
                 metrics = await taskMetrics;
