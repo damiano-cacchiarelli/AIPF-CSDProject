@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace AIPF.Models.Taxi
 {
-    public class RawStringTaxiFare : AbstractTaxiFare, IDateAsString, ICopy<MinutesTaxiFare>
+    public class RawStringTaxiFare : AbstractTaxiFare, IDateAsString, ICopy<MinutesTaxiFare>, ICopy<RawStringTaxiFare>
     {
         /*
          
@@ -24,6 +24,17 @@ namespace AIPF.Models.Taxi
             b.Y1 = Y1;
             b.Y2 = Y2;
             b.PassengersCount = PassengersCount;
+        }
+
+        public void Copy(ref RawStringTaxiFare b)
+        {
+            b.DateAsString = DateAsString;
+            b.FareAmount = FareAmount;
+            b.PassengersCount = PassengersCount;
+            b.X1 = X1;
+            b.X2 = X2;
+            b.Y1 = Y1;
+            b.Y2 = Y2;
         }
     }
 }

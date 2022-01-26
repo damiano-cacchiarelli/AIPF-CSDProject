@@ -42,14 +42,16 @@ namespace AIPF.MLManager.Actions
                 throw new Exception("You must create a pipeline before");
 
             // Injecting some values inside the modifiers
-            var nI = 0;
+            var nI = 1;
             foreach (var trainerIterable in linkedPipeline.GetTransformersOfPipeline<ITrainerIterable>())
             {
                 nI = Math.Max(nI, trainerIterable.NumberOfIterations);
             }
             foreach (var totalNumberRequirement in linkedPipeline.GetTransformersOfPipeline<ITotalNumberRequirement>())
             {
-                totalNumberRequirement.TotalCount = (int)((dataView.GetRowCount() ?? 1) * nI);
+                var f = mlContext.Data.CreateEnumerable<I>(dataView, reuseRowObject: true).Count();
+                //(dataView.GetRowCount() ?? 1) 
+                totalNumberRequirement.TotalCount = (int)(f * nI);
             }
 
             linkedPipeline.GetModificators().ForEach(m => m.Begin());

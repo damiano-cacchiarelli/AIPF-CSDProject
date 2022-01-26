@@ -27,7 +27,6 @@
     <None Remove="MLManager\Actions\Modifiers\Date\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile1.txt" />
     <None Remove="MLManager\Modifier\NewFile2.txt" />
-    <None Remove="MLManager\NewFile1.txt" />
     <None Remove="NewFile1.txt" />
   </ItemGroup>
 

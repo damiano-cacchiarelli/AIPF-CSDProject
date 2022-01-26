@@ -1,6 +1,7 @@
 ﻿using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
 using AIPF.MLManager.Metrics;
+using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF_Console.RobotLoccioni_example.Model;
@@ -14,6 +15,7 @@ namespace AIPF_Console.RobotLoccioni_example
 {
     public class RobotLoccioni : IExample
     {
+        private static RobotLoccioni instance = new RobotLoccioni();
         private MLManager<RobotData, OutputMeasure> mlManager = new MLManager<RobotData, OutputMeasure>();
 
         public string Name => "Robot-Loccioni";
@@ -25,7 +27,7 @@ namespace AIPF_Console.RobotLoccioni_example
 
         public static RobotLoccioni Start()
         {
-            return new RobotLoccioni();
+            return instance;
         }
 
 
@@ -43,16 +45,17 @@ namespace AIPF_Console.RobotLoccioni_example
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
                 mlManager.CreatePipeline()
+                    .AddTransformer(new ProgressIndicator<RobotData>($"{Name}Process#1"))
                     //.AddFilter(new MissingPropertyFilter<RobotData>())
                     //.AddFilter(i => i.EventType != 0)
-                    .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
+                    .Append(new ConcatenateColumn<RobotData>("float_input", propertiesName))
                     .Append(new ApplyEvaluableOnnxModel<RobotData, OutputMeasure, MulticlassEvaluate>(
                         $"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx",
                         (i, o) => 
                         {
                             o.PredictedEventType = i.EventType[0];
                             o.ProbabilityEventType = i.GetProbability();
-                            AnsiConsole.WriteLine("processing...");
+                            //AnsiConsole.WriteLine("processing...");
                         }))
                     .Build();
 
@@ -163,8 +166,10 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else
             {
-                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(5);
-                metrics = await mlManager.EvaluateAll(rawDataList);
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
+                var taskMetrics = mlManager.EvaluateAll(rawDataList);
+                await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
+                metrics = await taskMetrics;
             }
 
             ConsoleHelper.PrintMetrics(metrics);

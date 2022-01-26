@@ -19,12 +19,14 @@ namespace AIPF.MLManager.Modifiers
 
         public ProgressIndicator(string processName)
         {
+            MessageManager.IMessageQueue.Register(processName);
+            MessageManager.IMessageQueue.DequeueAsync(processName, CancellationToken.None);
             this.processName = processName;
+
         }
 
         void IModificator.Begin()
         {
-            MessageManager.IMessageQueue.Register(processName);
             processed = 0;
         }
 
@@ -42,14 +44,17 @@ namespace AIPF.MLManager.Modifiers
                 {
                     Interlocked.Increment(ref processed);
                 }
-                MessageManager.IMessageQueue.EnqueueAsync(processName, ((double)processed) / TotalCount, CancellationToken.None);
+                var count = ((double)processed) / TotalCount;
+                MessageManager.IMessageQueue.EnqueueAsync(processName, count, CancellationToken.None);
             }
         }
 
         void IModificator.End()
         {
             MessageManager.IMessageQueue.EnqueueAsync(processName, 1, CancellationToken.None);
-            MessageManager.IMessageQueue.Unregister(processName);
+            //MessageManager.IMessageQueue.EnqueueAsync(processName, 0, CancellationToken.None);
+
+            //MessageManager.IMessageQueue.Unregister(processName);
         }
     }
 }

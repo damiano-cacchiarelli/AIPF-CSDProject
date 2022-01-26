@@ -24,6 +24,7 @@ namespace AIPF.MLManager.EventQueue
 		{
 			if (clientToChannelMap.TryGetValue(id, out Channel<T> channel))
 			{
+
 				return channel.Reader.ReadAllAsync(cancelToken);
 			}
 			else

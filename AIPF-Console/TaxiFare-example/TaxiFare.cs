@@ -22,7 +22,7 @@ namespace AIPF_Console.TaxiFare_example
 {
     public class TaxiFare : IExample
     {
-
+        private static TaxiFare instance = new TaxiFare();
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
 
         public string Name => "Taxi-Fare";
@@ -34,7 +34,7 @@ namespace AIPF_Console.TaxiFare_example
 
         public static IExample Start()
         {
-            return new TaxiFare();
+            return instance;
 
         }
 
@@ -51,6 +51,8 @@ namespace AIPF_Console.TaxiFare_example
             {
 
                 mlManager.CreatePipeline()
+                    .AddTransformer(new ProgressIndicator<RawStringTaxiFare>($"{Name}Process#1"))
+                    .Build()
                     .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                     .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
                     .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
@@ -149,8 +151,10 @@ namespace AIPF_Console.TaxiFare_example
             }
             else
             {
-                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
-                metrics = await mlManager.EvaluateAll(rawDataList);
+                //var rawDataList = mlManager.Loader.GetEnumerable(data)
+                var taskMetrics = mlManager.EvaluateAll(data);
+                await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
+                metrics = await taskMetrics;
             }
 
             ConsoleHelper.PrintMetrics(metrics);
