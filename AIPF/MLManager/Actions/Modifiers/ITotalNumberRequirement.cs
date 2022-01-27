@@ -1,4 +1,4 @@
-﻿namespace AIPF.MLManager.Modifiers
+﻿namespace AIPF.MLManager.Actions.Modifiers
 {
     public interface ITotalNumberRequirement
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AIPF.MLManager.Modifiers.Date
+namespace AIPF.MLManager.Actions.Modifiers.Date
 {
     public interface IDateParser<R>
     {

@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 
-namespace AIPF.MLManager.Actions
+namespace AIPF.MLManager.Actions.Filters
 {
     public class Filter<I> : IFilterAction<I> where I : class, new()
     {

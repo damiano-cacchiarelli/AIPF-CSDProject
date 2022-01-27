@@ -1,9 +1,8 @@
 ﻿using AIPF.MLManager.EventQueue;
 using Microsoft.ML;
-using System;
 using System.Threading;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF.MLManager.Actions.Modifiers
 {
     public class ProgressIndicator<I> : IModifier<I, I>, ITotalNumberRequirement where I : class, ICopy<I>, new()
     {

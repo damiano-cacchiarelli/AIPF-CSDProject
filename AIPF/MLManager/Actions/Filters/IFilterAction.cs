@@ -1,8 +1,6 @@
-﻿using AIPF.MLManager.Metrics;
-using Microsoft.ML;
-using System.Collections.Generic;
+﻿using Microsoft.ML;
 
-namespace AIPF.MLManager.Actions
+namespace AIPF.MLManager.Actions.Filters
 {
     public interface IFilterAction<I> : IAction where I : class, new()
     {
