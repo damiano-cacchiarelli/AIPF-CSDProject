@@ -45,12 +45,6 @@ namespace AIPF_Console.RobotLoccioni_example
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
                 mlManager.CreatePipeline()
-<<<<<<< HEAD
-                    //.AddFilter(new MissingPropertyFilter<RobotData>())
-                    //.AddFilter(i => i.EventType != 0)
-                    .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
-                    .Append(new ApplyOnnxModel<RobotData, OutputMeasure>($"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx"))
-=======
                     .AddTransformer(new ProgressIndicator<RobotData>($"{Name}Process#1"))
                     //.AddFilter(new MissingPropertyFilter<RobotData>())
                     //.AddFilter(i => i.EventType != 0)
@@ -63,7 +57,6 @@ namespace AIPF_Console.RobotLoccioni_example
                             o.ProbabilityEventType = i.GetProbability();
                             //AnsiConsole.WriteLine("processing...");
                         }))
->>>>>>> feature/async-progress-indicator
                     .Build();
 
                 var data = new RobotData[] { };
