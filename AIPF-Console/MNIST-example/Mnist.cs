@@ -1,17 +1,12 @@
 ﻿using AIPF.MLManager;
-using AIPF.MLManager.EventQueue;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
 using AIPF_Console.MNIST_example.Modifiers;
 using AIPF_Console.Utils;
-using Microsoft.ML;
 using Spectre.Console;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIPF_Console.MNIST_example

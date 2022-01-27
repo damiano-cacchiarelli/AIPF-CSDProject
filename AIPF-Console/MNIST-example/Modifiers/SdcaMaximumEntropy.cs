@@ -3,7 +3,6 @@ using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
 using Microsoft.ML;
-using Microsoft.ML.Data;
 
 namespace AIPF_Console.MNIST_example.Modifiers
 {

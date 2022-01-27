@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace AIPF_Console
+namespace AIPF_Console.MNIST_example
 {
     public class MnistLoader
     {
