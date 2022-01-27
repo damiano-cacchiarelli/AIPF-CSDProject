@@ -3,7 +3,7 @@ using Microsoft.ML;
 using System;
 using System.Linq;
 
-namespace AIPF.MLManager.Modifiers.TaxiFare
+namespace AIPF.MLManager.Actions.Modifiers
 {
     public class ApplyEvaluableOnnxModel<I, O, E> : ApplyOnnxModel<I, O>, IEvaluable where O : class, new() where E : class, new()
     {

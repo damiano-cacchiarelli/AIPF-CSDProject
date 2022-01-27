@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace AIPF.MLManager.Modifiers.Date
+namespace AIPF.MLManager.Actions.Modifiers.Date
 {
     public interface IDateAsDateTime
     {

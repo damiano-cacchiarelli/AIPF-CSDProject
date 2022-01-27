@@ -1,13 +1,13 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers
+namespace AIPF.MLManager.Actions.Modifiers.Columns
 {
-    public class RenameColumn2<I> : IModifier<I, I> where I : class, new()
+    public class MapValueToKey<I> : IModifier<I, I> where I : class, new()
     {
         private readonly string input;
         private readonly string output;
 
-        public RenameColumn2(string input, string output)
+        public MapValueToKey(string input, string output)
         {
             this.input = input;
             this.output = output;
@@ -15,7 +15,7 @@ namespace AIPF.MLManager.Modifiers
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
-            return mlContext.Transforms.CopyColumns(output, input);
+            return mlContext.Transforms.Conversion.MapValueToKey(output, input);
         }
     }
 }
