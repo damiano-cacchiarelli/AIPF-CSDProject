@@ -1,4 +1,4 @@
-﻿using AIPF.MLManager.Modifiers.Date;
+﻿using AIPF.MLManager.Actions.Modifiers.Date;
 using AIPF_Console.TaxiFare_example.Model;
 using Microsoft.ML;
 using NUnit.Framework;

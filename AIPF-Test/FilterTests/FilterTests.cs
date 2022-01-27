@@ -1,4 +1,4 @@
-﻿using AIPF.MLManager.Actions;
+﻿using AIPF.MLManager.Actions.Filters;
 using AIPF_Console.TaxiFare_example.Model;
 using Microsoft.ML;
 using NUnit.Framework;
