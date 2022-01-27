@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Onnx;
@@ -49,5 +50,13 @@ namespace AIPF_Console.RobotLoccioni_example.Model
             }
         }
 
+        public float[] GetProbability() 
+        {
+            var dic = Probability.ToArray()[0];
+            //dic.Add(0, 0);
+            var toReturn = new List<float>() { 0 };
+            toReturn.AddRange(dic.Values);
+            return toReturn.ToArray();
+        }
     }
 }

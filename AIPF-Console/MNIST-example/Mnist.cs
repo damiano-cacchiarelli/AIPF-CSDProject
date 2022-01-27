@@ -18,8 +18,9 @@ namespace AIPF_Console.MNIST_example
 {
     public class Mnist : IExample
     {
-        private MLManager<VectorRawImage, OutputImage> mlManager = new MLManager<VectorRawImage, OutputImage>();
+        private static Mnist instance = new Mnist();
 
+        private MLManager<VectorRawImage, OutputImage> mlManager = new MLManager<VectorRawImage, OutputImage>();
         private List<VectorRawImage> rawImageDataList = null;
         public string Name => "MNIST";
 
@@ -29,7 +30,7 @@ namespace AIPF_Console.MNIST_example
 
         public static IExample Start()
         {
-            return new Mnist();
+            return instance;
         }
 
         public async Task Metrics()
@@ -45,7 +46,9 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                metrics = await mlManager.EvaluateAll(rawImageDataList);
+                var taskMetrics = mlManager.EvaluateAll(rawImageDataList);
+                await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
+                metrics = await taskMetrics;
             }
 
             ConsoleHelper.PrintMetrics(metrics);
@@ -53,8 +56,11 @@ namespace AIPF_Console.MNIST_example
 
         public async Task Predict()
         {
-            // Digit = 6
-            VectorRawImage rawImageToPredict = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt")[0];
+
+            AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
+            var path = AnsiConsole.Ask<string>("Insert the path of the image to predict ", $"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt");
+        
+            VectorRawImage rawImageToPredict = MnistLoader.ReadImageFromFile(path)[0];
             OutputImage predictedImage;
             if (Program.REST)
             {
@@ -99,15 +105,15 @@ namespace AIPF_Console.MNIST_example
             }
             else
             {
-                var messageQueue = new MessageQueue<double>();
+
                 mlManager.CreatePipeline()
-                    .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
+                    .AddTransformer(new ProgressIndicator<VectorRawImage>($"{Name}Process#1"))
                     .Append(new VectorImageResizer())
-                    .Append(new SdcaMaximumEntropy(200))
+                    .Append(new SdcaMaximumEntropy(100))
                     .Build();
 
                 var fittingTask = mlManager.Fit(rawImageDataList);
-                await ConsoleHelper.Loading("Fitting pipeline", @"Process#1", messageQueue);
+                await ConsoleHelper.Loading("Fitting pipeline", $"{Name}Process#1");
                 await fittingTask;
             }
 

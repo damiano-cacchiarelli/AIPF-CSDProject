@@ -1,6 +1,7 @@
 ﻿using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
 using AIPF.MLManager.Metrics;
+using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF_Console.RobotLoccioni_example.Model;
@@ -14,6 +15,7 @@ namespace AIPF_Console.RobotLoccioni_example
 {
     public class RobotLoccioni : IExample
     {
+        private static RobotLoccioni instance = new RobotLoccioni();
         private MLManager<RobotData, OutputMeasure> mlManager = new MLManager<RobotData, OutputMeasure>();
 
         public string Name => "Robot-Loccioni";
@@ -25,7 +27,7 @@ namespace AIPF_Console.RobotLoccioni_example
 
         public static RobotLoccioni Start()
         {
-            return new RobotLoccioni();
+            return instance;
         }
 
 
@@ -43,17 +45,33 @@ namespace AIPF_Console.RobotLoccioni_example
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
                 mlManager.CreatePipeline()
+<<<<<<< HEAD
                     //.AddFilter(new MissingPropertyFilter<RobotData>())
                     //.AddFilter(i => i.EventType != 0)
                     .AddTransformer(new ConcatenateColumn<RobotData>("float_input", propertiesName))
                     .Append(new ApplyOnnxModel<RobotData, OutputMeasure>($"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx"))
+=======
+                    .AddTransformer(new ProgressIndicator<RobotData>($"{Name}Process#1"))
+                    //.AddFilter(new MissingPropertyFilter<RobotData>())
+                    //.AddFilter(i => i.EventType != 0)
+                    .Append(new ConcatenateColumn<RobotData>("float_input", propertiesName))
+                    .Append(new ApplyEvaluableOnnxModel<RobotData, OutputMeasure, MulticlassEvaluate>(
+                        $"{IExample.Dir}/RobotLoccioni-example/Data/Onnx/modello_correnti_robot.onnx",
+                        (i, o) => 
+                        {
+                            o.PredictedEventType = i.EventType[0];
+                            o.ProbabilityEventType = i.GetProbability();
+                            //AnsiConsole.WriteLine("processing...");
+                        }))
+>>>>>>> feature/async-progress-indicator
                     .Build();
 
                 var data = new RobotData[] { };
-                var dataView = await mlManager.Fit(data);
-            }
+                var fitTask = mlManager.Fit(data);
 
-            ConsoleHelper.FitLoader();
+                await ConsoleHelper.Loading("Fitting model", $"{Name}Process#1");
+                await fitTask;
+            }
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -147,7 +165,7 @@ namespace AIPF_Console.RobotLoccioni_example
         public async Task Metrics()
         {
             var metrics = new List<MetricContainer>();
-            var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv");
+            var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv", ';');
             if (Program.REST)
             {
                 var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
@@ -156,7 +174,10 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else
             {
-                metrics = await mlManager.EvaluateAll(data);
+                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(5);
+                var taskMetrics = mlManager.EvaluateAll(rawDataList);
+                await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
+                metrics = await taskMetrics;
             }
 
             ConsoleHelper.PrintMetrics(metrics);

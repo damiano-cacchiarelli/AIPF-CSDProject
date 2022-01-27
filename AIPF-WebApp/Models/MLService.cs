@@ -29,7 +29,7 @@ namespace AIPF_RESTController.Models
         private MLManager<VectorRawImage, OutputImage> mnistMlManager = new MLManager<VectorRawImage, OutputImage>();
         private MLManager<RobotData, OutputMeasure> robotMlManager = new MLManager<RobotData, OutputMeasure>();
 
-        public MLService(IMessageQueue<double> messageQueue)
+        public MLService()
         {
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName + "/AIPF-Console";
 
@@ -49,7 +49,7 @@ namespace AIPF_RESTController.Models
                 .Build();
 
             mnistMlManager.CreatePipeline()
-                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1", messageQueue))
+                .AddTransformer(new ProgressIndicator<VectorRawImage>(@"Process#1"))
                 // Using our custom image resizer
                 //.Append(new CustomImageResizer())
                 // OR using the ml.net default ResizeImages method

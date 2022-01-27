@@ -22,7 +22,7 @@ namespace AIPF_Console.TaxiFare_example
 {
     public class TaxiFare : IExample
     {
-
+        private static TaxiFare instance = new TaxiFare();
         private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
 
         public string Name => "Taxi-Fare";
@@ -34,7 +34,7 @@ namespace AIPF_Console.TaxiFare_example
 
         public static IExample Start()
         {
-            return new TaxiFare();
+            return instance;
 
         }
 
@@ -51,6 +51,8 @@ namespace AIPF_Console.TaxiFare_example
             {
 
                 mlManager.CreatePipeline()
+                    .AddTransformer(new ProgressIndicator<RawStringTaxiFare>($"{Name}Process#1"))
+                    .Build()
                     .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                     .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
                     .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
@@ -62,14 +64,19 @@ namespace AIPF_Console.TaxiFare_example
                     .Append(new DeleteColumn<object>("input"))
                     .Append(new RenameColumn2<object>("variable", "input"))
                     .Append(new DeleteColumn<object>("variable"))
-                    .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
+                    .Append(new ApplyEvaluableOnnxModel<object, PredictedFareAmount, RegressionEvaluate>(
+                        $"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx",
+                        (i, o) => 
+                        {
+                            o.PredictedFareAmount = i.FareAmount[0];
+                        }))
                     .Build();
 
                 var data = new RawStringTaxiFare[] { };
-                var dataView = await mlManager.Fit(data);
+                var fitTask = mlManager.Fit(data);
+                await ConsoleHelper.Loading("Fitting model", $"{Name}Process#1");
+                await fitTask;
             }
-
-            ConsoleHelper.FitLoader();
 
             AnsiConsole.WriteLine("Train complete");
         }
@@ -144,7 +151,9 @@ namespace AIPF_Console.TaxiFare_example
             }
             else
             {
-                metrics = await mlManager.EvaluateAll(data);
+                var taskMetrics = mlManager.EvaluateAll(data);
+                await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
+                metrics = await taskMetrics;
             }
 
             ConsoleHelper.PrintMetrics(metrics);

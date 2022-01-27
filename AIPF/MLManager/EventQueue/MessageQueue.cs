@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 
 namespace AIPF.MLManager.EventQueue
 {
+	public class MessageManager
+    {
+		public static IMessageQueue<double> IMessageQueue { get; private set; } = new MessageQueue<double>();
+    }
     public class MessageQueue<T> : IMessageQueue<T>
     {
 		private ConcurrentDictionary<string, Channel<T>> clientToChannelMap;
 	
-		public MessageQueue()
+		internal MessageQueue()
 		{
 			clientToChannelMap = new ConcurrentDictionary<string, Channel<T>>();
 		}
@@ -20,6 +24,7 @@ namespace AIPF.MLManager.EventQueue
 		{
 			if (clientToChannelMap.TryGetValue(id, out Channel<T> channel))
 			{
+
 				return channel.Reader.ReadAllAsync(cancelToken);
 			}
 			else
