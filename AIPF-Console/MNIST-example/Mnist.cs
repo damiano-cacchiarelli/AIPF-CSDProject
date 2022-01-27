@@ -1,6 +1,6 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.Actions.Modifiers;
 using AIPF.MLManager.Metrics;
-using AIPF.MLManager.Modifiers;
 using AIPF_Console.MNIST_example.Model;
 using AIPF_Console.MNIST_example.Modifiers;
 using AIPF_Console.Utils;

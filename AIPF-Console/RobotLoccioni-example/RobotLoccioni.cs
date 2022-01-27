@@ -1,8 +1,7 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.Actions.Modifiers;
+using AIPF.MLManager.Actions.Modifiers.Columns;
 using AIPF.MLManager.Metrics;
-using AIPF.MLManager.Modifiers;
-using AIPF.MLManager.Modifiers.Columns;
-using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF_Console.RobotLoccioni_example.Model;
 using AIPF_Console.Utils;
 using Spectre.Console;

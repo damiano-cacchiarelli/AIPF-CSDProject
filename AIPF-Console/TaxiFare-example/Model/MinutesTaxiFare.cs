@@ -1,5 +1,5 @@
 ﻿using AIPF.MLManager;
-using AIPF.MLManager.Modifiers.Date;
+using AIPF.MLManager.Actions.Modifiers.Date;
 
 namespace AIPF_Console.TaxiFare_example.Model
 {
