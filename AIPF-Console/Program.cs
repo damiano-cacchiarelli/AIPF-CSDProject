@@ -1,4 +1,5 @@
-﻿using AIPF_Console.MNIST_example;
+﻿using AIPF.Telemetry;
+using AIPF_Console.MNIST_example;
 using AIPF_Console.RobotLoccioni_example;
 using AIPF_Console.TaxiFare_example;
 using Spectre.Console;
@@ -25,33 +26,36 @@ namespace AIPF_Console
         {
             string line = string.Empty;
 
-            while (!line.Equals("exit"))
+            using (var skd = TelemetryTracer.Initialize(null))
             {
-                if (example == null)
+                while (!line.Equals("exit"))
                 {
-                    example = SelectExample();
-                }
-                line = DefaultText();
+                    if (example == null)
+                    {
+                        example = SelectExample();
+                    }
+                    line = DefaultText();
 
-                try
-                {
-                    await Commands[line].Invoke(example);
-                }
-                catch (Exception ex)
-                {
-                    AnsiConsole.WriteException(ex);
-                }
-                if (line.Equals("exit")) break;
+                    try
+                    {
+                        await Commands[line].Invoke(example);
+                    }
+                    catch (Exception ex)
+                    {
+                        AnsiConsole.WriteException(ex);
+                    }
+                    if (line.Equals("exit")) break;
 
-                if (!line.Equals("back"))
-                {
-                    AnsiConsole.WriteLine();
-                    AnsiConsole.Write(new Rule("--").RuleStyle("blue").Centered());
+                    if (!line.Equals("back"))
+                    {
+                        AnsiConsole.WriteLine();
+                        AnsiConsole.Write(new Rule("--").RuleStyle("blue").Centered());
 
-                    if (!AnsiConsole.Confirm("Continue?"))
-                        break;
+                        if (!AnsiConsole.Confirm("Continue?"))
+                            break;
+                    }
+                    AnsiConsole.Clear();
                 }
-                AnsiConsole.Clear();
             }
         }
 

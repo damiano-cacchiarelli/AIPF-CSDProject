@@ -3,6 +3,7 @@ using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
 
 namespace AIPF.MLManager.Actions
@@ -48,6 +49,9 @@ namespace AIPF.MLManager.Actions
             action?.Execute(rawData, out transformedDataView);
             if (Next != null)
             {
+                var activity = Activity.Current;
+                activity?.AddEvent(new ActivityEvent($"{GetType().Name} fitted. Calling next.", DateTimeOffset.Now));
+
                 Next.Fit(transformedDataView, out transformedDataView);
             }
         }
