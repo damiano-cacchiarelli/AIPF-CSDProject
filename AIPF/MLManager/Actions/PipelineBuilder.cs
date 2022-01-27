@@ -1,5 +1,5 @@
-﻿using AIPF.MLManager.Metrics;
-using AIPF.MLManager.Modifiers;
+﻿using AIPF.MLManager.Actions.Modifiers;
+using AIPF.MLManager.Metrics;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;

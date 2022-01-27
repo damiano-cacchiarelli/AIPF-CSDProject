@@ -1,4 +1,4 @@
-﻿using AIPF.MLManager.Modifiers;
+﻿using AIPF.MLManager.Actions.Modifiers;
 using Microsoft.ML;
 using System.Collections.Generic;
 using System.Linq;
