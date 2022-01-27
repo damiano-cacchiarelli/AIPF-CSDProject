@@ -4,8 +4,6 @@ using AIPF_Console.TaxiFare_example;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace AIPF_Console

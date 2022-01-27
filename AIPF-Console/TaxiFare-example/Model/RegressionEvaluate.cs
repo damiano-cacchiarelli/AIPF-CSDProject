@@ -1,6 +1,6 @@
 ﻿using AIPF.MLManager.Metrics;
 
-namespace AIPF_Console.TaxiFare_example
+namespace AIPF_Console.TaxiFare_example.Model
 {
     [EvaluateAlgorithm(EvaluateAlgorithmType.REGRESSION, "labelColumnName", "FareAmount")]
     public class RegressionEvaluate

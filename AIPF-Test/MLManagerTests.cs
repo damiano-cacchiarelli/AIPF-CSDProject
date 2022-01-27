@@ -5,7 +5,7 @@ using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
-using AIPF.Models.Taxi;
+using AIPF_Console.TaxiFare_example.Model;
 using Microsoft.ML;
 using NUnit.Framework;
 using System;

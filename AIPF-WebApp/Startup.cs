@@ -1,5 +1,3 @@
-using AIPF.MLManager.EventQueue;
-using AIPF_RESTController.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

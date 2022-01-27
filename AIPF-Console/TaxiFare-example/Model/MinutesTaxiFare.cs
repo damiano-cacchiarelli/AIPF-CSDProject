@@ -1,7 +1,7 @@
 ﻿using AIPF.MLManager;
 using AIPF.MLManager.Modifiers.Date;
 
-namespace AIPF.Models.Taxi 
+namespace AIPF_Console.TaxiFare_example.Model
 {
     public class MinutesTaxiFare : AbstractTaxiFare, IDateParser<float>, ICopy<ProcessedTaxiFare>
     {

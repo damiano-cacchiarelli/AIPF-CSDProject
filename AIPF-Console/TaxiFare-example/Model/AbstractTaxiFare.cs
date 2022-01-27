@@ -1,7 +1,7 @@
 ﻿using AIPF.MLManager.Modifiers;
 using Microsoft.ML.Data;
 
-namespace AIPF.Models.Taxi
+namespace AIPF_Console.TaxiFare_example.Model
 {
     public abstract class AbstractTaxiFare : ICoordinates
     {

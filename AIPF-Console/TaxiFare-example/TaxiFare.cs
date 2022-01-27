@@ -6,16 +6,11 @@ using AIPF.MLManager.Modifiers.Columns;
 using AIPF.MLManager.Modifiers.Date;
 using AIPF.MLManager.Modifiers.Maths;
 using AIPF.MLManager.Modifiers.TaxiFare;
-using AIPF.Models.Taxi;
+using AIPF_Console.TaxiFare_example.Model;
 using AIPF_Console.Utils;
-using Microsoft.ML;
 using Spectre.Console;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AIPF_Console.TaxiFare_example

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using AIPF.MLManager.Metrics;
 using System.IO;
 using AIPF.MLManager.EventQueue;
-using System.Threading;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 

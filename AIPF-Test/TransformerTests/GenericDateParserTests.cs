@@ -1,10 +1,8 @@
 ﻿using AIPF.MLManager.Modifiers.Date;
-using AIPF.Models.Taxi;
+using AIPF_Console.TaxiFare_example.Model;
 using Microsoft.ML;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AIPF_Test.TransformerTests
 {
