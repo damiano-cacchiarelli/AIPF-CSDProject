@@ -45,11 +45,10 @@ namespace AIPF_Console.TaxiFare_example
             {
 
                 mlManager.CreatePipeline()
-                    .AddTransformer(new ProgressIndicator<RawStringTaxiFare>($"{Name}Process#1"))
-                    .Build()
                     .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                     .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
-                    .AddTransformer(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
+                    .AddTransformer(new ProgressIndicator<RawStringTaxiFare>($"{Name}Process#1"))
+                    .Append(new GenericDateParser<RawStringTaxiFare, float, MinutesTaxiFare>("yyyy-MM-dd HH:mm:ss UTC", IDateParser<float>.ToMinute))
                     .Append(new EuclideanDistance<MinutesTaxiFare, ProcessedTaxiFare>())
                     .Build()
                     .AddFilter(i => i.Distance > 0 && i.Distance <= 0.5)
@@ -60,7 +59,7 @@ namespace AIPF_Console.TaxiFare_example
                     .Append(new DeleteColumn<object>("variable"))
                     .Append(new ApplyEvaluableOnnxModel<object, PredictedFareAmount, RegressionEvaluate>(
                         $"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx",
-                        (i, o) => 
+                        (i, o) =>
                         {
                             o.PredictedFareAmount = i.FareAmount[0];
                         }))

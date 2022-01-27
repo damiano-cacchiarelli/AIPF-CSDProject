@@ -1,4 +1,5 @@
 ﻿using AIPF.MLManager;
+using AIPF.MLManager.Actions.Filters;
 using AIPF.MLManager.Actions.Modifiers;
 using AIPF.MLManager.Actions.Modifiers.Columns;
 using AIPF.MLManager.Metrics;
@@ -43,8 +44,8 @@ namespace AIPF_Console.RobotLoccioni_example
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
                 mlManager.CreatePipeline()
+                    .AddFilter(new MissingPropertyFilter<RobotData>())
                     .AddTransformer(new ProgressIndicator<RobotData>($"{Name}Process#1"))
-                    //.AddFilter(new MissingPropertyFilter<RobotData>())
                     //.AddFilter(i => i.EventType != 0)
                     .Append(new ConcatenateColumn<RobotData>("float_input", propertiesName))
                     .Append(new ApplyEvaluableOnnxModel<RobotData, OutputMeasure, MulticlassEvaluate>(
