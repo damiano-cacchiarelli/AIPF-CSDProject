@@ -1,5 +1,4 @@
 ﻿using AIPF.MLManager;
-using AIPF.MLManager.Actions.Filters;
 using AIPF.MLManager.Metrics;
 using AIPF.MLManager.Modifiers;
 using AIPF.MLManager.Modifiers.Columns;

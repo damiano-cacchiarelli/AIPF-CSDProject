@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers.Maths
+namespace AIPF.MLManager.Actions.Modifiers.Maths
 {
     public class EuclideanDistance<I, O> : IModifier<I, O> where I : class, ICoordinates, ICopy<O>, new() where O : class, IDistance, new()
     {

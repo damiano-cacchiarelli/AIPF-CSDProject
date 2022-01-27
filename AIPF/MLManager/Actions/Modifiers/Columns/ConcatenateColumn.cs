@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers.Columns
+namespace AIPF.MLManager.Actions.Modifiers.Columns
 {
     public class ConcatenateColumn<I> : IModifier<I, I> where I : class, new()
     {

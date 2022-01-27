@@ -1,11 +1,8 @@
 ﻿using Microsoft.ML;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.Serialization;
-using System.Text;
 
-namespace AIPF.MLManager.Modifiers.Date
+namespace AIPF.MLManager.Actions.Modifiers.Date
 {
     public class GenericDateParser<I, R, O> : IModifier<I, O> where I : class, IDateAsString, ICopy<O>, new() where O : class, IDateParser<R>, new()
     {

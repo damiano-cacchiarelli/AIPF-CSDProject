@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers.TaxiFare
+namespace AIPF.MLManager.Actions.Modifiers
 {
     public class ApplyOnnxModel<I, O> : IModifier<I, O> where O : class, new()
     {

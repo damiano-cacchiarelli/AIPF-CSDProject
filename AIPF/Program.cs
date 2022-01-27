@@ -1,28 +1,8 @@
-﻿using Microsoft.ML;
-using System.IO;
-using AIPF.MLManager;
-using AIPF.MLManager.Modifiers;
-using System;
-using AIPF.MLManager.Modifiers.Date;
-using AIPF.MLManager.Modifiers.Maths;
-using AIPF.MLManager.Modifiers.TaxiFare;
-using AIPF.MLManager.Modifiers.Columns;
-using AIPF.MLManager.Actions.Filters;
-using System.Linq;
-
-namespace AIPF
+﻿namespace AIPF
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-
-            
-            //PredictUsingVectorPipeline();
-            //PredictUsingBitmapPipeline();
-            //PredictUsingMorePipeline();
-            //TaxiFarePrediction();
-        }
+        static void Main(string[] args) { }
 /*
         private static void TaxiFarePrediction()
         {

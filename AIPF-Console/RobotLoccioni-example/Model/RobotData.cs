@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AIPF.MLManager;
+﻿using AIPF.MLManager;
 using AIPF.MLManager.Modifiers.Date;
 using Microsoft.ML.Data;
 

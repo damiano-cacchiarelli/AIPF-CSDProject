@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
 
-namespace AIPF.MLManager.Modifiers.Columns
+namespace AIPF.MLManager.Actions.Modifiers.Columns
 {
     public class RenameColumn<I> : IModifier<I, I> where I : class, new()
     {
@@ -15,7 +15,7 @@ namespace AIPF.MLManager.Modifiers.Columns
 
         public IEstimator<ITransformer> GetPipeline(MLContext mlContext)
         {
-            return mlContext.Transforms.Conversion.MapValueToKey(output, input);
+            return mlContext.Transforms.CopyColumns(output, input);
         }
     }
 }

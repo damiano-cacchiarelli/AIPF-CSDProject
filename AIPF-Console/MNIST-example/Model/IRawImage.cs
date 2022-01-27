@@ -1,6 +1,4 @@
-﻿using Microsoft.ML.Data;
-
-namespace AIPF_Console.MNIST_example.Model
+﻿namespace AIPF_Console.MNIST_example.Model
 {
     public interface IRawImage<T>
     {

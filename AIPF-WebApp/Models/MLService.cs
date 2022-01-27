@@ -40,7 +40,7 @@ namespace AIPF_RESTController.Models
                 .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
                 .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
                 .Append(new DeleteColumn<object>("input"))
-                .Append(new RenameColumn2<object>("variable", "input"))
+                .Append(new RenameColumn<object>("variable", "input"))
                 .Append(new DeleteColumn<object>("variable"))
                 .Append(new ApplyOnnxModel<object, PredictedFareAmount>($"{dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx"))
                 .Build();

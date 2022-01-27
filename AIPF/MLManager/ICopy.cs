@@ -1,5 +1,4 @@
-﻿
-namespace AIPF.MLManager
+﻿namespace AIPF.MLManager
 {
     public interface ICopy<T>
     {

@@ -57,7 +57,7 @@ namespace AIPF_Console.TaxiFare_example
                     .AddTransformer(new ConcatenateColumn<ProcessedTaxiFare>("input", nameof(ProcessedTaxiFare.Date), nameof(ProcessedTaxiFare.Distance), nameof(ProcessedTaxiFare.PassengersCount)))
                     .Append(new ApplyOnnxModel<ProcessedTaxiFare, object>($"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca.onnx"))
                     .Append(new DeleteColumn<object>("input"))
-                    .Append(new RenameColumn2<object>("variable", "input"))
+                    .Append(new RenameColumn<object>("variable", "input"))
                     .Append(new DeleteColumn<object>("variable"))
                     .Append(new ApplyEvaluableOnnxModel<object, PredictedFareAmount, RegressionEvaluate>(
                         $"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx",

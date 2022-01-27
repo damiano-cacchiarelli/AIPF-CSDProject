@@ -1,7 +1,6 @@
-﻿using AIPF.MLManager.Modifiers;
-using Microsoft.ML;
+﻿using AIPF.MLManager.Actions.Modifiers;
 
 namespace AIPF.MLManager
 {
-    public interface IModifier<I, O> : IModificator { }// where I : class, new() where O : class, new() { }
+    public interface IModifier<I, O> : IModificator { }
 }
