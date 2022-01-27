@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <Folder Include="RobotLoccioni-example\Data\Onnx\" />
-    <Folder Include="TaxiFare-example\Modifiers\" />
   </ItemGroup>
 
   <ItemGroup>

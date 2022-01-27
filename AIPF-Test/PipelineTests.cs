@@ -1,6 +1,6 @@
 ﻿using AIPF.MLManager.Actions;
-using AIPF.MLManager.Modifiers.Date;
-using AIPF.MLManager.Modifiers.Maths;
+using AIPF.MLManager.Actions.Modifiers.Date;
+using AIPF.MLManager.Actions.Modifiers.Maths;
 using AIPF_Console.TaxiFare_example.Model;
 using Microsoft.ML;
 using NUnit.Framework;

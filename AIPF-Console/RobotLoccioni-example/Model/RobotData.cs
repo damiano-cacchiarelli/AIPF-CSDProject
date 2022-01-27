@@ -1,5 +1,5 @@
 ﻿using AIPF.MLManager;
-using AIPF.MLManager.Modifiers.Date;
+using AIPF.MLManager.Actions.Modifiers.Date;
 using Microsoft.ML.Data;
 
 namespace AIPF_Console.RobotLoccioni_example.Model

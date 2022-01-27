@@ -1,15 +1,15 @@
 using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
-using AIPF.MLManager.Modifiers;
-using AIPF.MLManager.Modifiers.Columns;
-using AIPF.MLManager.Modifiers.Date;
-using AIPF.MLManager.Modifiers.Maths;
-using AIPF.MLManager.Modifiers.TaxiFare;
+using AIPF.MLManager.Actions.Modifiers;
+using AIPF.MLManager.Actions.Modifiers.Columns;
+using AIPF.MLManager.Actions.Modifiers.Date;
+using AIPF.MLManager.Actions.Modifiers.Maths;
 using AIPF_Console.TaxiFare_example.Model;
 using Microsoft.ML;
 using NUnit.Framework;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AIPF_Test

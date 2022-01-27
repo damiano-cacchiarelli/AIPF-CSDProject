@@ -1,11 +1,10 @@
 ﻿using AIPF.MLManager;
 using AIPF.MLManager.Actions.Filters;
+using AIPF.MLManager.Actions.Modifiers;
+using AIPF.MLManager.Actions.Modifiers.Columns;
+using AIPF.MLManager.Actions.Modifiers.Date;
+using AIPF.MLManager.Actions.Modifiers.Maths;
 using AIPF.MLManager.Metrics;
-using AIPF.MLManager.Modifiers;
-using AIPF.MLManager.Modifiers.Columns;
-using AIPF.MLManager.Modifiers.Date;
-using AIPF.MLManager.Modifiers.Maths;
-using AIPF.MLManager.Modifiers.TaxiFare;
 using AIPF_Console.TaxiFare_example.Model;
 using AIPF_Console.Utils;
 using Spectre.Console;

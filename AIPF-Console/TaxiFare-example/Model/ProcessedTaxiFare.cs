@@ -1,4 +1,4 @@
-﻿using AIPF.MLManager.Modifiers.Maths;
+﻿using AIPF.MLManager.Actions.Modifiers.Maths;
 
 namespace AIPF_Console.TaxiFare_example.Model
 {
