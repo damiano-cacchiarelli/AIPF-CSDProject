@@ -26,7 +26,7 @@ namespace AIPF_Console
         {
             string line = string.Empty;
 
-            using (var skd = TelemetryTracer.Initialize(null))
+            using (var skd = TelemetryTracer.InitializeTracer(null))
             {
                 while (!line.Equals("exit"))
                 {

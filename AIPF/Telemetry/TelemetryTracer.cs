@@ -1,6 +1,8 @@
 ﻿using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
 using System;
 using System.Collections.Generic;
 
@@ -36,9 +38,17 @@ namespace AIPF.Telemetry
         //public static readonly ActivitySource @ActivitySource = new ActivitySource("MLManager");
         //public static readonly ActivitySource @ActivitySource2 = new ActivitySource("MLManager2");
 
+        public static MeterProvider InizializeMeterProvider()
+        {
+            var builder = Sdk.CreateMeterProviderBuilder()
+                //TODO
+                
+                .Build();
 
+            return builder;
+        }
 
-        public static TracerProvider Initialize(Func<TracerProviderBuilder, TracerProviderBuilder> exporter)
+        public static TracerProvider InitializeTracer(Func<TracerProviderBuilder, TracerProviderBuilder> exporter)
         {
             var builder = Sdk.CreateTracerProviderBuilder()
             .AddSource("MLManager")
@@ -49,7 +59,10 @@ namespace AIPF.Telemetry
 
             //return exporter.Invoke(builder)
             //.AddConsoleExporter()
-            .AddOtlpExporter(opt => opt.Endpoint = new Uri("http://localhost:58648"))
+            .AddOtlpExporter(opt => { 
+                opt.Endpoint = new Uri("http://localhost:58648");
+                opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+            })
             .Build();
             return builder;
             /*
