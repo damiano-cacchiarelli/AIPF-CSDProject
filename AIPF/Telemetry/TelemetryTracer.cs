@@ -24,8 +24,6 @@ namespace AIPF.Telemetry
         }
         */
 
-
-
         public static readonly string SERVICE_NAME = "Company.Product.AIPF";
         public static readonly string SERVICE_VERSION = "1.0.0";
 
@@ -50,6 +48,8 @@ namespace AIPF.Telemetry
 
         public static TracerProvider InitializeTracer(Func<TracerProviderBuilder, TracerProviderBuilder> exporter)
         {
+            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
             var builder = Sdk.CreateTracerProviderBuilder()
             .AddSource("MLManager")
             .SetResourceBuilder(
@@ -59,9 +59,9 @@ namespace AIPF.Telemetry
 
             //return exporter.Invoke(builder)
             //.AddConsoleExporter()
-            .AddOtlpExporter(opt => { 
-                opt.Endpoint = new Uri("http://localhost:58648");
-                opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+            .AddOtlpExporter(opt => {
+                opt.Endpoint = new Uri("http://localhost:4317");
+                opt.Protocol = OtlpExportProtocol.Grpc;
             })
             .Build();
             return builder;
