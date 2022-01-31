@@ -39,8 +39,8 @@ namespace AIPF.Telemetry
         public static MeterProvider InizializeMeterProvider()
         {
             var builder = Sdk.CreateMeterProviderBuilder()
-                //TODO
-                
+                .AddMeter("MyCompany.MyProduct.MyLibrary")
+                .AddConsoleExporter()
                 .Build();
 
             return builder;
