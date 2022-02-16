@@ -1,9 +1,11 @@
 ﻿using AIPF.MLManager.Actions;
 using AIPF.MLManager.Metrics;
 using Microsoft.ML;
+using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AIPF.MLManager
@@ -15,12 +17,14 @@ namespace AIPF.MLManager
         private readonly MLContext mlContext;
 
         private MLBuilder<I, O> mlBuilder;
-        private bool trained = false;
+        public bool Trained { get; private set; } = false;
+        public string Name { get; private set; }
 
         public MLLoader<I> Loader { get; private set; }
 
-        public MLManager()
+        public MLManager(string name = "Default model")
         {
+            Name = name;
             mlContext = new MLContext();
             //mlContext.Log += new EventHandler<LoggingEventArgs>(Log);
             Loader = new MLLoader<I>(this.mlContext);
@@ -51,9 +55,10 @@ namespace AIPF.MLManager
             return await Task.Run(() =>
             {
                 using var activity = source.StartActivity("Fit");
+                activity?.AddTag("model_name", Name);
                 mlBuilder.Fit(rawData, out IDataView transformedDataView);
-                trained = true;
-                activity?.AddEvent(new ActivityEvent("End fit!", DateTimeOffset.Now));
+                Trained = true;
+                activity?.AddEvent(new ActivityEvent("End fit!", DateTimeOffset.UtcNow));
                 return transformedDataView;
             });
         }
@@ -62,17 +67,41 @@ namespace AIPF.MLManager
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
-            if (!trained)
+            if (!Trained)
                 throw new Exception("You must call Fit() before Predict()!");
             if (toPredict == null)
                 throw new Exception("You must pass a valid item!");
 
-            return await Task.Run(() => {
+            return await Task.Run(() =>
+            {
                 using var activity = source.StartActivity("Predict");
-                var prediction = mlBuilder.Predict(toPredict);
-                activity?.AddEvent(new ActivityEvent("End Prediction!", DateTimeOffset.Now));
-                return prediction;
-                });
+                activity?.AddTag("model_name", Name);
+                try
+                {
+                    var prediction = mlBuilder.Predict(toPredict);
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    return prediction;
+                }
+                catch (Exception ex)
+                {
+                    activity?.RecordException(ex);
+                    activity?.SetStatus(Status.Error.WithDescription(ex.Message));
+                    //activity?.SetStatus(ActivityStatusCode.Error, e.Message);
+                    throw ex;
+                }
+                finally
+                {
+                    activity?.AddEvent(new ActivityEvent("End Prediction!", DateTimeOffset.UtcNow, new ActivityTagsCollection(
+            new Dictionary<string, object>
+            {
+                { "log.severity", "error" },
+                { "log.message", "User not found" },
+                { "enduser.id", 123 },
+            }
+        )));
+                }
+
+            });
         }
 
         public async Task<List<MetricContainer>> EvaluateAll(IEnumerable<I> data)
@@ -86,7 +115,7 @@ namespace AIPF.MLManager
                 throw new Exception("The pipeline must be valid");
             if (dataView == null)
                 throw new Exception("You need to pass a data set to test the accurancy of the model!");
-            if (!trained)
+            if (!Trained)
                 throw new Exception("You must call Fit() before EvaluateAll()!");
 
             return await Task.Run(() =>
@@ -94,7 +123,7 @@ namespace AIPF.MLManager
 
                 return setMetrics(mlBuilder.EvaluateAll(dataView));
 
-                //activity?.AddEvent(new ActivityEvent("End EvaluateAll!", DateTimeOffset.Now));
+                //activity?.AddEvent(new ActivityEvent("End EvaluateAll!", DateTimeOffset.UtcNow));
                 //return metrics;
             });
         }
@@ -102,12 +131,13 @@ namespace AIPF.MLManager
         private List<MetricContainer> setMetrics(List<MetricContainer> metrics)
         {
             using var activity = source.StartActivity("EvaluateAll");
+            activity?.AddTag("model_name", Name);
             foreach (var m in metrics)
             {
                 foreach (var mm in m.Metrics)
                 {
                     //m.Name + mm.Name + ", " + mm.Value;
-                    activity?.SetTag(m.Name+"."+mm.Name, mm.Value);
+                    activity?.SetTag(m.Name + "." + mm.Name, mm.Value);
                 }
             }
 

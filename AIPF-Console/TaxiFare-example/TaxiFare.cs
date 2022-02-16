@@ -8,6 +8,7 @@ using AIPF.MLManager.Metrics;
 using AIPF_Console.TaxiFare_example.Model;
 using AIPF_Console.Utils;
 using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace AIPF_Console.TaxiFare_example
     public class TaxiFare : IExample
     {
         private static TaxiFare instance = new TaxiFare();
-        private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>();
+        private MLManager<RawStringTaxiFare, PredictedFareAmount> mlManager = new MLManager<RawStringTaxiFare, PredictedFareAmount>("TaxiFare");
 
         public string Name => "Taxi-Fare";
 
@@ -41,9 +42,9 @@ namespace AIPF_Console.TaxiFare_example
                 dynamic fitBody = new { ModelName = Name, Data = new object[0] };
                 RestService.Post<string>("train", fitBody);
             }
-            else
+            else if (!mlManager.Trained)
             {
-
+                
                 mlManager.CreatePipeline()
                     .AddFilter(new MissingPropertyFilter<RawStringTaxiFare>())
                     .AddFilter(i => i.PassengersCount >= 1 && i.PassengersCount <= 10)
@@ -74,17 +75,36 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public async Task Predict()
+        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE)
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
 
-            var pickupDatetime = AnsiConsole.Ask<string>("Insert the pickup datetime (must be of the format YYYY-MM-DD hh:mm:ss) ", "2011-08-18 00:35:00");
-            var pickup_longitude = AnsiConsole.Ask<float>("Insert the pickup longitude ", -73.982738f);
-            var pickup_latitude = AnsiConsole.Ask<float>("Insert the pickup latitude ", 40.76127f);
-            var dropoff_longitude = AnsiConsole.Ask<float>("Insert the dropoff longitude ", -73.991242f);
-            var dropoff_latitude = AnsiConsole.Ask<float>("Insert the dropoff latitude ", 40.750562f);
-            var passenger_count = AnsiConsole.Ask<float>("Insert the passenger count ", 2);
+            var pickupDatetime = "2011-08-18 00:35:00";
+            var pickup_longitude = -73.982738f;
+            var pickup_latitude = 40.76127f;
+            var dropoff_longitude = -73.991242f;
+            var dropoff_latitude = 40.750562f;
+            float passenger_count = 2;
+
+            if (predictionMode == PredictionMode.USER_VALUE)
+            {
+                pickupDatetime = AnsiConsole.Ask<string>("Insert the pickup datetime (must be of the format YYYY-MM-DD hh:mm:ss) ", "2011-08-18 00:35:00");
+                pickup_longitude = AnsiConsole.Ask<float>("Insert the pickup longitude ", -73.982738f);
+                pickup_latitude = AnsiConsole.Ask<float>("Insert the pickup latitude ", 40.76127f);
+                dropoff_longitude = AnsiConsole.Ask<float>("Insert the dropoff longitude ", -73.991242f);
+                dropoff_latitude = AnsiConsole.Ask<float>("Insert the dropoff latitude ", 40.750562f);
+                passenger_count = AnsiConsole.Ask<float>("Insert the passenger count ", 2);
+            }
+            else if (predictionMode == PredictionMode.RANDOM_VALUE)
+            {
+                var random = new Random();
+                pickup_longitude = (float)random.NextDouble() * -73;
+                dropoff_longitude = pickup_longitude + (float)random.NextDouble()*0.3f;
+                pickup_latitude = (float)random.NextDouble() * 40;
+                dropoff_latitude = pickup_latitude + (float)random.NextDouble()*0.3f;
+                passenger_count = random.Next(1, 9);
+            }
 
             var toPredict = new RawStringTaxiFare()
             {

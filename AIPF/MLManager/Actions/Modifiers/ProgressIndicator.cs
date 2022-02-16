@@ -1,11 +1,14 @@
 ﻿using AIPF.MLManager.EventQueue;
+using AIPF.Telemetry;
 using Microsoft.ML;
+using System.Diagnostics.Metrics;
 using System.Threading;
 
 namespace AIPF.MLManager.Actions.Modifiers
 {
     public class ProgressIndicator<I> : IModifier<I, I>, ITotalNumberRequirement where I : class, ICopy<I>, new()
     {
+        private static readonly Meter MyMeter = new Meter("ProgressIndicator", TelemetryTracer.SERVICE_VERSION);
 
         static private readonly object _sync = new object();
 
@@ -13,6 +16,7 @@ namespace AIPF.MLManager.Actions.Modifiers
         private int processed = 0;
         public int Processed { get => processed; protected set => processed = value; }
         public int TotalCount { get; set; } = 1;
+
 
         public ProgressIndicator(string processName)
         {

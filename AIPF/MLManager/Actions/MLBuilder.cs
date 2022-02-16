@@ -50,7 +50,7 @@ namespace AIPF.MLManager.Actions
             if (Next != null)
             {
                 var activity = Activity.Current;
-                activity?.AddEvent(new ActivityEvent($"{GetType().Name} fitted. Calling next.", DateTimeOffset.Now));
+                activity?.AddEvent(new ActivityEvent($"{GetType().Name} fitted. Calling next.", DateTimeOffset.UtcNow));
 
                 Next.Fit(transformedDataView, out transformedDataView);
             }

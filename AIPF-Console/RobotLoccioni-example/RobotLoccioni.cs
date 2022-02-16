@@ -6,6 +6,7 @@ using AIPF.MLManager.Metrics;
 using AIPF_Console.RobotLoccioni_example.Model;
 using AIPF_Console.Utils;
 using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace AIPF_Console.RobotLoccioni_example
     public class RobotLoccioni : IExample
     {
         private static RobotLoccioni instance = new RobotLoccioni();
-        private MLManager<RobotData, OutputMeasure> mlManager = new MLManager<RobotData, OutputMeasure>();
+        private MLManager<RobotData, OutputMeasure> mlManager = new MLManager<RobotData, OutputMeasure>("RobotLoccioni");
 
         public string Name => "Robot-Loccioni";
 
@@ -39,7 +40,7 @@ namespace AIPF_Console.RobotLoccioni_example
                 dynamic fitBody = new { ModelName = Name, Data = new object[0] };
                 RestService.Post<string>("train", fitBody);
             }
-            else
+            else if (!mlManager.Trained)
             {
                 var propertiesName = typeof(RobotData).GetProperties().Where(p => p.Name.Contains("Axis")).Select(p => p.Name).ToArray();
 
@@ -68,24 +69,58 @@ namespace AIPF_Console.RobotLoccioni_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public async Task Predict()
+        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE)
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
 
-            var datetime = AnsiConsole.Ask<string>("Insert the datetime (must be of the format YYYY-MM-DD hh:mm:ss.nnn) ", "2019-07-10 20:50:53.247");
-            var maxCurrentAxis1 = AnsiConsole.Ask("Insert the max current axis 1 ", 1.812f);
-            var maxCurrentAxis2 = AnsiConsole.Ask<float>("Insert the max current axis 2 ", 10.042f);
-            var maxCurrentAxis3 = AnsiConsole.Ask<float>("Insert the max current axis 3 ", 4.116f);
-            var maxCurrentAxis4 = AnsiConsole.Ask<float>("Insert the max current axis 4 ", 1.248f);
-            var maxCurrentAxis5 = AnsiConsole.Ask<float>("Insert the max current axis 5 ", 1.504f);
-            var maxCurrentAxis6 = AnsiConsole.Ask<float>("Insert the max current axis 6 ", 0.853f);
-            var rmsCurrentAxis1 = AnsiConsole.Ask<float>("Insert the average current axis 1 ", 1.282f);
-            var rmsCurrentAxis2 = AnsiConsole.Ask<float>("Insert the average current axis 2 ", 7.101f);
-            var rmsCurrentAxis3 = AnsiConsole.Ask<float>("Insert the average current axis 3 ", 2.911f);
-            var rmsCurrentAxis4 = AnsiConsole.Ask<float>("Insert the average current axis 4 ", 0.882f);
-            var rmsCurrentAxis5 = AnsiConsole.Ask<float>("Insert the average current axis 5 ", 1.064f);
-            var rmsCurrentAxis6 = AnsiConsole.Ask<float>("Insert the average current axis 6 ", 0.603f);
+            var datetime = "2019-07-10 20:50:53.247";
+            var maxCurrentAxis1 = 1.812f;
+            var maxCurrentAxis2 = 10.042f;
+            var maxCurrentAxis3 = 4.116f;
+            var maxCurrentAxis4 = 1.248f;
+            var maxCurrentAxis5 = 1.504f;
+            var maxCurrentAxis6 = 0.853f;
+            var rmsCurrentAxis1 = 1.282f;
+            var rmsCurrentAxis2 = 7.101f;
+            var rmsCurrentAxis3 = 2.911f;
+            var rmsCurrentAxis4 = 0.882f;
+            var rmsCurrentAxis5 = 1.064f;
+            var rmsCurrentAxis6 = 0.603f;
+
+            if (predictionMode == PredictionMode.USER_VALUE)
+            {
+                datetime = AnsiConsole.Ask<string>("Insert the datetime (must be of the format YYYY-MM-DD hh:mm:ss.nnn) ", "2019-07-10 20:50:53.247");
+                maxCurrentAxis1 = AnsiConsole.Ask("Insert the max current axis 1 ", 1.812f);
+                maxCurrentAxis2 = AnsiConsole.Ask<float>("Insert the max current axis 2 ", 10.042f);
+                maxCurrentAxis3 = AnsiConsole.Ask<float>("Insert the max current axis 3 ", 4.116f);
+                maxCurrentAxis4 = AnsiConsole.Ask<float>("Insert the max current axis 4 ", 1.248f);
+                maxCurrentAxis5 = AnsiConsole.Ask<float>("Insert the max current axis 5 ", 1.504f);
+                maxCurrentAxis6 = AnsiConsole.Ask<float>("Insert the max current axis 6 ", 0.853f);
+                rmsCurrentAxis1 = AnsiConsole.Ask<float>("Insert the average current axis 1 ", 1.282f);
+                rmsCurrentAxis2 = AnsiConsole.Ask<float>("Insert the average current axis 2 ", 7.101f);
+                rmsCurrentAxis3 = AnsiConsole.Ask<float>("Insert the average current axis 3 ", 2.911f);
+                rmsCurrentAxis4 = AnsiConsole.Ask<float>("Insert the average current axis 4 ", 0.882f);
+                rmsCurrentAxis5 = AnsiConsole.Ask<float>("Insert the average current axis 5 ", 1.064f);
+                rmsCurrentAxis6 = AnsiConsole.Ask<float>("Insert the average current axis 6 ", 0.603f);
+            }
+            else if(predictionMode == PredictionMode.RANDOM_VALUE)
+            {
+                var random = new Random();
+                maxCurrentAxis1 = (float)random.NextDouble() * random.Next(1, 3);
+                maxCurrentAxis2 = (float)random.NextDouble() * random.Next(1, 3);
+                maxCurrentAxis3 = (float)random.NextDouble() * random.Next(1, 3);
+                maxCurrentAxis4 = (float)random.NextDouble() * random.Next(1, 3);
+                maxCurrentAxis5 = (float)random.NextDouble() * random.Next(1, 3);
+                maxCurrentAxis6 = (float)random.NextDouble() * random.Next(1, 3);
+                rmsCurrentAxis1 = (float)random.NextDouble() * random.Next(1, 3);
+                rmsCurrentAxis2 = (float)random.NextDouble() * random.Next(1, 3);
+                rmsCurrentAxis3 = (float)random.NextDouble() * random.Next(1, 3);
+                rmsCurrentAxis4 = (float)random.NextDouble() * random.Next(1, 3);
+                rmsCurrentAxis5 = (float)random.NextDouble() * random.Next(1, 3);
+                rmsCurrentAxis6 = (float)random.NextDouble() * random.Next(1, 3);
+            }
+
 
             var toPredict = new RobotData()
             {

@@ -7,13 +7,19 @@ namespace AIPF_Console
     {
         static string Dir => Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
-        public string Name {  get;  }
+        public string Name { get; }
 
         public Task Train();
 
-        public Task Predict();
+        public Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE);
 
         public Task Metrics();
 
+    }
+
+    public enum PredictionMode {
+        DEFAULT_VALUE,
+        RANDOM_VALUE,
+        USER_VALUE
     }
 }

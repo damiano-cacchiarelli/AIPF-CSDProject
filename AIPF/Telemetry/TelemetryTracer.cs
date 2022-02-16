@@ -38,9 +38,18 @@ namespace AIPF.Telemetry
 
         public static MeterProvider InizializeMeterProvider()
         {
+            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
             var builder = Sdk.CreateMeterProviderBuilder()
-                .AddMeter("MyCompany.MyProduct.MyLibrary")
-                .AddConsoleExporter()
+                .AddMeter(SERVICE_NAME, "ProgressIndicator")
+                .SetResourceBuilder(
+                    ResourceBuilder.CreateDefault()
+                    .AddTelemetrySdk()
+                    .AddService(serviceName: SERVICE_NAME, serviceVersion: SERVICE_VERSION))
+                .AddOtlpExporter(opt => {
+                    opt.Endpoint = new Uri("http://localhost:4317");
+                    opt.Protocol = OtlpExportProtocol.Grpc;
+                })
                 .Build();
 
             return builder;
@@ -51,11 +60,11 @@ namespace AIPF.Telemetry
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
             var builder = Sdk.CreateTracerProviderBuilder()
-            .AddSource("MLManager")
+            .AddSource("MLManager", "PipelineBuilder", "Filter")
             .SetResourceBuilder(
                 ResourceBuilder.CreateDefault()
+                .AddTelemetrySdk()
                 .AddService(serviceName: SERVICE_NAME, serviceVersion: SERVICE_VERSION))
-            
 
             //return exporter.Invoke(builder)
             //.AddConsoleExporter()

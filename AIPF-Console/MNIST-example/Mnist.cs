@@ -5,6 +5,7 @@ using AIPF_Console.MNIST_example.Model;
 using AIPF_Console.MNIST_example.Modifiers;
 using AIPF_Console.Utils;
 using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace AIPF_Console.MNIST_example
     {
         private static Mnist instance = new Mnist();
 
-        private MLManager<VectorRawImage, OutputImage> mlManager = new MLManager<VectorRawImage, OutputImage>();
+        private MLManager<VectorRawImage, OutputImage> mlManager = new MLManager<VectorRawImage, OutputImage>("Mnist");
         private List<VectorRawImage> rawImageDataList = null;
         public string Name => "MNIST";
 
@@ -49,13 +50,26 @@ namespace AIPF_Console.MNIST_example
             ConsoleHelper.PrintMetrics(metrics);
         }
 
-        public async Task Predict()
+        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE)
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
-            var path = AnsiConsole.Ask<string>("Insert the path of the image to predict ", $"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt");
-        
+
+            var path = $"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt";
+            if (predictionMode == PredictionMode.USER_VALUE)
+            {
+                path = AnsiConsole.Ask<string>("Insert the path of the image to predict ", $"{IExample.Dir}/MNIST-example/Data/image_to_predict.txt");
+            }
+                    
             VectorRawImage rawImageToPredict = MnistLoader.ReadImageFromFile(path)[0];
+
+            if (predictionMode == PredictionMode.RANDOM_VALUE)
+            {
+                if (rawImageDataList == null)
+                    rawImageDataList = MnistLoader.ReadImageFromFile($"{IExample.Dir}/MNIST-example/Data/optdigits_original_training.txt", 21);
+                rawImageToPredict = rawImageDataList[new Random().Next(0, rawImageDataList.Count-1)];
+            }
+
             OutputImage predictedImage;
             if (Program.REST)
             {
@@ -98,7 +112,7 @@ namespace AIPF_Console.MNIST_example
                     });
 
             }
-            else
+            else if (!mlManager.Trained)
             {
 
                 mlManager.CreatePipeline()
