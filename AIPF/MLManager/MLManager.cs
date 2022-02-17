@@ -1,5 +1,6 @@
 ﻿using AIPF.MLManager.Actions;
 using AIPF.MLManager.Metrics;
+using AIPF.Utilities;
 using Microsoft.ML;
 using OpenTelemetry.Trace;
 using System;
@@ -56,14 +57,32 @@ namespace AIPF.MLManager
             {
                 using var activity = source.StartActivity("Fit");
                 activity?.AddTag("model_name", Name);
-                mlBuilder.Fit(rawData, out IDataView transformedDataView);
-                Trained = true;
-                activity?.AddEvent(new ActivityEvent("End fit!", DateTimeOffset.UtcNow));
-                return transformedDataView;
+                activity?.AddTag("type", typeof(MLManager<I, O>).ToGenericTypeString());
+                activity?.AddTag("processed_elements", MLUtils.GetDataViewLength<I>(mlContext, rawData));
+                activity?.AddTag("input.type", typeof(I).ToGenericTypeString());
+                activity?.AddTag("output.type", typeof(O).ToGenericTypeString());
+
+                try
+                {
+                    mlBuilder.Fit(rawData, out IDataView transformedDataView);
+                    Trained = true;
+                    activity?.SetStatus(Status.Ok.WithDescription("All fine"));
+                    return transformedDataView;
+                }
+                catch (Exception ex)
+                {
+                    activity?.RecordException(ex);
+                    activity?.SetStatus(Status.Error.WithDescription(ex.Message));
+                    throw ex;
+                }
+                finally
+                {
+                    activity?.AddEvent(new ActivityEvent("End fit!", DateTimeOffset.UtcNow));
+                }
             });
         }
 
-        public async Task<O> Predict(I toPredict)
+        public async Task<O> Predict(I toPredict) 
         {
             if (mlBuilder == null)
                 throw new Exception("The pipeline must be valid");
@@ -76,29 +95,28 @@ namespace AIPF.MLManager
             {
                 using var activity = source.StartActivity("Predict");
                 activity?.AddTag("model_name", Name);
+                activity?.AddTag("type", typeof(MLManager<I, O>).ToGenericTypeString());
+                activity?.AddTag("input.type", typeof(I).ToGenericTypeString());
+                activity?.AddTag("output.type", typeof(O).ToGenericTypeString());
+
+                Array.ForEach(typeof(I).GetProperties(), p => activity?.AddTag($"input.{p.Name}", p.GetValue(toPredict)));
+
                 try
                 {
                     var prediction = mlBuilder.Predict(toPredict);
-                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    activity?.SetStatus(Status.Ok.WithDescription("All fine")); 
+                    Array.ForEach(typeof(O).GetProperties(), p => activity?.AddTag($"output.{p.Name}", p.GetValue(prediction)));
                     return prediction;
                 }
                 catch (Exception ex)
                 {
                     activity?.RecordException(ex);
                     activity?.SetStatus(Status.Error.WithDescription(ex.Message));
-                    //activity?.SetStatus(ActivityStatusCode.Error, e.Message);
                     throw ex;
                 }
                 finally
                 {
-                    activity?.AddEvent(new ActivityEvent("End Prediction!", DateTimeOffset.UtcNow, new ActivityTagsCollection(
-            new Dictionary<string, object>
-            {
-                { "log.severity", "error" },
-                { "log.message", "User not found" },
-                { "enduser.id", 123 },
-            }
-        )));
+                    activity?.AddEvent(new ActivityEvent("End Prediction!", DateTimeOffset.UtcNow));
                 }
 
             });
@@ -120,18 +138,36 @@ namespace AIPF.MLManager
 
             return await Task.Run(() =>
             {
+                using var activity = source.StartActivity("EvaluateAll");
+                activity?.AddTag("model_name", Name);
+                activity?.AddTag("type", typeof(MLManager<I, O>).ToGenericTypeString());
+                activity?.AddTag("processed_elements", MLUtils.GetDataViewLength<I>(mlContext, rawData));
+                activity?.AddTag("input.type", typeof(I).ToGenericTypeString());
+                activity?.AddTag("output.type", typeof(O).ToGenericTypeString());
 
-                return setMetrics(mlBuilder.EvaluateAll(dataView));
-
-                //activity?.AddEvent(new ActivityEvent("End EvaluateAll!", DateTimeOffset.UtcNow));
-                //return metrics;
+                try
+                {
+                    var metrics = mlBuilder.EvaluateAll(dataView);
+                    activity?.SetStatus(Status.Ok.WithDescription("All fine"));
+                    return setMetrics(activity, metrics);
+                }
+                catch (Exception ex)
+                {
+                    activity?.RecordException(ex);
+                    activity?.SetStatus(Status.Error.WithDescription(ex.Message));
+                    throw ex;
+                }
+                finally
+                {
+                    activity?.AddEvent(new ActivityEvent("End Evaluate!", DateTimeOffset.UtcNow));
+                }
             });
         }
 
-        private List<MetricContainer> setMetrics(List<MetricContainer> metrics)
+        private List<MetricContainer> setMetrics(Activity activity, List<MetricContainer> metrics)
         {
-            using var activity = source.StartActivity("EvaluateAll");
-            activity?.AddTag("model_name", Name);
+            //using var activity = source.StartActivity("EvaluateAll");
+            //activity?.AddTag("model_name", Name);
             foreach (var m in metrics)
             {
                 foreach (var mm in m.Metrics)

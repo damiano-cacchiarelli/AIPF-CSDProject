@@ -59,7 +59,7 @@ namespace AIPF_Console.TaxiFare_example
                     .Append(new RenameColumn<object>("variable", "input"))
                     .Append(new DeleteColumn<object>("variable"))
                     .Append(new ApplyEvaluableOnnxModel<object, PredictedFareAmount, RegressionEvaluate>(
-                        $"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_linReg.onnx",
+                        $"{IExample.Dir}/TaxiFare-example/Data/Onnx/skl_pca_hubReg.onnx",
                         (i, o) =>
                         {
                             o.PredictedFareAmount = i.FareAmount[0];
@@ -75,7 +75,7 @@ namespace AIPF_Console.TaxiFare_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE)
+        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE, int error = 0)
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -98,12 +98,17 @@ namespace AIPF_Console.TaxiFare_example
             }
             else if (predictionMode == PredictionMode.RANDOM_VALUE)
             {
+                error = Math.Clamp(error, 0, 100);
+
                 var random = new Random();
                 pickup_longitude = (float)random.NextDouble() * -73;
                 dropoff_longitude = pickup_longitude + (float)random.NextDouble()*0.3f;
                 pickup_latitude = (float)random.NextDouble() * 40;
                 dropoff_latitude = pickup_latitude + (float)random.NextDouble()*0.3f;
                 passenger_count = random.Next(1, 9);
+
+                if (random.Next(0, 100) < error) dropoff_latitude += 0.1f;
+                if (random.Next(0, 100) < error) passenger_count += 5;
             }
 
             var toPredict = new RawStringTaxiFare()
@@ -134,8 +139,6 @@ namespace AIPF_Console.TaxiFare_example
             {
                 predictedValue = await mlManager.Predict(toPredict);
             }
-
-
 
             var values = new string[]{
                 pickupDatetime,

@@ -69,7 +69,7 @@ namespace AIPF_Console.RobotLoccioni_example
             AnsiConsole.WriteLine("Train complete");
         }
 
-        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE)
+        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE, int error = 0)
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -106,6 +106,8 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else if(predictionMode == PredictionMode.RANDOM_VALUE)
             {
+                error = Math.Clamp(error, 0, 100);
+
                 var random = new Random();
                 maxCurrentAxis1 = (float)random.NextDouble() * random.Next(1, 3);
                 maxCurrentAxis2 = (float)random.NextDouble() * random.Next(1, 3);
@@ -119,6 +121,8 @@ namespace AIPF_Console.RobotLoccioni_example
                 rmsCurrentAxis4 = (float)random.NextDouble() * random.Next(1, 3);
                 rmsCurrentAxis5 = (float)random.NextDouble() * random.Next(1, 3);
                 rmsCurrentAxis6 = (float)random.NextDouble() * random.Next(1, 3);
+
+                if (random.Next(0, 100) < error) maxCurrentAxis1 = float.NaN;
             }
 
 

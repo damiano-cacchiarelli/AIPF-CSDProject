@@ -8,8 +8,6 @@ namespace AIPF.MLManager.Actions.Modifiers
 {
     public class ProgressIndicator<I> : IModifier<I, I>, ITotalNumberRequirement where I : class, ICopy<I>, new()
     {
-        private static readonly Meter MyMeter = new Meter("ProgressIndicator", TelemetryTracer.SERVICE_VERSION);
-
         static private readonly object _sync = new object();
 
         protected readonly string processName;

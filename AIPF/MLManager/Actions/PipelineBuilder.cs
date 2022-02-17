@@ -53,7 +53,7 @@ namespace AIPF.MLManager.Actions
             predictionEngine = mlContext.Model.CreatePredictionEngine<I, O>(Model);
             linkedPipeline.GetModificators().ForEach(m => m.End());
 
-            activity?.AddEvent(new ActivityEvent("Execution ended"));
+            activity?.AddEvent(new ActivityEvent("Execution ended", DateTimeOffset.UtcNow));
         }
 
         public O Predict(I toPredict)

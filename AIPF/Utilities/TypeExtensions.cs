@@ -19,5 +19,13 @@ namespace AIPF.Utilities
                     .Select(ta => ToGenericTypeString(ta)).ToArray());
             return genericTypeName + "<" + genericArgs + ">";
         }
+
+        public static string SimpleName(this Type t)
+        {
+            if (!t.IsGenericType)
+                return t.Name;
+            string genericTypeName = t.GetGenericTypeDefinition().Name;
+            return genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
+        }
     }
 }

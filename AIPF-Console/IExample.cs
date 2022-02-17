@@ -11,7 +11,7 @@ namespace AIPF_Console
 
         public Task Train();
 
-        public Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE);
+        public Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE, int error = 0);
 
         public Task Metrics();
 

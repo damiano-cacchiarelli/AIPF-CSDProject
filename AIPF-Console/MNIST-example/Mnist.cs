@@ -50,7 +50,7 @@ namespace AIPF_Console.MNIST_example
             ConsoleHelper.PrintMetrics(metrics);
         }
 
-        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE)
+        public async Task Predict(PredictionMode predictionMode = PredictionMode.USER_VALUE, int error = 0)
         {
 
             AnsiConsole.Write(new Rule("[yellow]Predicting[/]").RuleStyle("grey").LeftAligned());
@@ -114,7 +114,6 @@ namespace AIPF_Console.MNIST_example
             }
             else if (!mlManager.Trained)
             {
-
                 mlManager.CreatePipeline()
                     .AddTransformer(new ProgressIndicator<VectorRawImage>($"{Name}Process#1"))
                     .Append(new VectorImageResizer())

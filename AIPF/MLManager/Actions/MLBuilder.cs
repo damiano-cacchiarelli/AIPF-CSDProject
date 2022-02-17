@@ -1,5 +1,6 @@
 ﻿using AIPF.MLManager.Actions.Filters;
 using AIPF.MLManager.Metrics;
+using AIPF.Utilities;
 using Microsoft.ML;
 using System;
 using System.Collections.Generic;
@@ -50,7 +51,7 @@ namespace AIPF.MLManager.Actions
             if (Next != null)
             {
                 var activity = Activity.Current;
-                activity?.AddEvent(new ActivityEvent($"{GetType().Name} fitted. Calling next.", DateTimeOffset.UtcNow));
+                activity?.AddEvent(new ActivityEvent($"{typeof(MLBuilder<I,O>).ToGenericTypeString()} fitted. Calling next.", DateTimeOffset.UtcNow));
 
                 Next.Fit(transformedDataView, out transformedDataView);
             }
