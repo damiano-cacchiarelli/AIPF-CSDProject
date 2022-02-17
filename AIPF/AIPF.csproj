@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="MLManager\Actions\Modifiers\Images\**" />
+    <EmbeddedResource Remove="MLManager\Actions\Modifiers\Images\**" />
+    <None Remove="MLManager\Actions\Modifiers\Images\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Image\RawImages.cs" />
+    <Compile Remove="MLManager\Evaluable.cs" />
+    <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate - Copia.cs" />
+    <Compile Remove="MLManager\Actions\Modifiers\Date\ParseDate2.cs" />
+    <Compile Remove="MLManager\MessageQueque.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Image\NewFile1.txt" />
+    <None Remove="MLManager\Evalu" />
+    <None Remove="MLManager\Actions\Modifiers\Date\GenericDateParser" />
+    <None Remove="MLManager\Actions\Modifiers\Date\IDateParser" />
+    <None Remove="MLManager\Actions\Modifiers\Date\NewFile1.txt" />
+    <None Remove="MLManager\Modifier\NewFile1.txt" />
+    <None Remove="MLManager\Modifier\NewFile2.txt" />
+    <None Remove="NewFile1.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+    <PackageReference Include="Microsoft.ML" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.10.0" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.6.0" />
+  </ItemGroup>
+
+</Project>

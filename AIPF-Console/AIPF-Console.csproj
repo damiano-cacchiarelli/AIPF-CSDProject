@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>AIPF_Console</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="RobotLoccioni-example\Modifiers\**" />
+    <EmbeddedResource Remove="RobotLoccioni-example\Modifiers\**" />
+    <None Remove="RobotLoccioni-example\Modifiers\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AIPF\AIPF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="RobotLoccioni-example\Data\Onnx\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.43.0" />
+  </ItemGroup>
+
+</Project>
