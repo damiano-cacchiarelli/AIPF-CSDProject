@@ -14,6 +14,9 @@ namespace AIPF.Telemetry
         public static readonly string SERVICE_NAME = "Company.Product.AIPF";
         public static readonly string SERVICE_VERSION = "1.0.0";
 
+        public static readonly string IP = "http://192.168.178.167:4317";
+        //"http://localhost:4317"
+
         public static MeterProvider InizializeMeterProvider()
         {
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
@@ -26,7 +29,7 @@ namespace AIPF.Telemetry
                     .AddService(serviceName: SERVICE_NAME, serviceVersion: SERVICE_VERSION))
                 .AddOtlpExporter(opt =>
                 {
-                    opt.Endpoint = new Uri("http://localhost:4317");
+                    opt.Endpoint = new Uri(IP);
                     opt.Protocol = OtlpExportProtocol.Grpc;
                 })
                 .Build();
@@ -44,7 +47,7 @@ namespace AIPF.Telemetry
                     .AddService(serviceName: SERVICE_NAME, serviceVersion: SERVICE_VERSION))
                 .AddOtlpExporter(opt =>
                 {
-                    opt.Endpoint = new Uri("http://localhost:4317");
+                    opt.Endpoint = new Uri(IP);
                     opt.Protocol = OtlpExportProtocol.Grpc;
                 })
                 .Build();
@@ -58,7 +61,7 @@ namespace AIPF.Telemetry
             {
                 builder.AddOpenTelemetry(options => options.AddOtlpExporter(opt =>
                 {
-                    opt.Endpoint = new Uri("http://localhost:4317");
+                    opt.Endpoint = new Uri(IP);
                     opt.Protocol = OtlpExportProtocol.Grpc;
                 }));
             });

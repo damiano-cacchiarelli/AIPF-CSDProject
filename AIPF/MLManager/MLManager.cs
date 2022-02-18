@@ -141,7 +141,7 @@ namespace AIPF.MLManager
                 using var activity = source.StartActivity("EvaluateAll");
                 activity?.AddTag("model_name", Name);
                 activity?.AddTag("type", typeof(MLManager<I, O>).ToGenericTypeString());
-                activity?.AddTag("processed_elements", MLUtils.GetDataViewLength<I>(mlContext, rawData));
+                activity?.AddTag("processed_elements", MLUtils.GetDataViewLength<I>(mlContext, dataView));
                 activity?.AddTag("input.type", typeof(I).ToGenericTypeString());
                 activity?.AddTag("output.type", typeof(O).ToGenericTypeString());
 
