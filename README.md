@@ -2,10 +2,10 @@
 
 A project developed in collaboration with the *University of Camerino* and the *Loccioni* company.
 
-**Team:**
-* [Damiano Cacchiarelli](https://github.com/damiano-cacchiarelli) - damiano.cacchiarelli@studenti.unicam.it
-* [Matteo Romagnoli](https://github.com/Matteo099) - matteo02.romagnoli@studenti.unicam.it
-* [Roberto Cesetti](https://github.com/robertocesetti) - roberto.cesetti@studenti.unicam.it
+**Team:**<br><br>
+<a href="https://github.com/damiano-cacchiarelli/AIPF-CSDProject/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=damiano-cacchiarelli/AIPF-CSDProject" />
+</a>
 
 **Project manager:** Luca Mazzuferi
 
