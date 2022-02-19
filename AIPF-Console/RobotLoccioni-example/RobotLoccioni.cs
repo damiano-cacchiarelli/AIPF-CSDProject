@@ -31,7 +31,7 @@ namespace AIPF_Console.RobotLoccioni_example
         }
 
 
-        public async Task Train()
+        public async Task Train(int? numberOfIterations, int? numberOfElementsForTrain)
         {
             AnsiConsole.Write(new Rule("[yellow]Training[/]").RuleStyle("grey").LeftAligned());
 
@@ -193,10 +193,10 @@ namespace AIPF_Console.RobotLoccioni_example
             AnsiConsole.Write(table);
         }
 
-        public async Task Metrics()
+        public async Task Metrics(int? numberOfElementsForEvaluate)
         {
-            var metrics = new List<MetricContainer>();
             var data = mlManager.Loader.LoadFile($"{IExample.Dir}/RobotLoccioni-example/Data/Dati.csv", ';');
+            List<MetricContainer> metrics;
             if (Program.REST)
             {
                 var rawDataList = mlManager.Loader.GetEnumerable(data).Take(50);
@@ -205,8 +205,11 @@ namespace AIPF_Console.RobotLoccioni_example
             }
             else
             {
-                var rawDataList = mlManager.Loader.GetEnumerable(data).Take(5);
-                var taskMetrics = mlManager.EvaluateAll(rawDataList);
+                var rawDataList = mlManager.Loader.GetEnumerable(data);
+                IEnumerable<RobotData> rawDataListForEvaluate = rawDataList.OrderBy(x => IExample.random.Next());
+                if (numberOfElementsForEvaluate != null)
+                    rawDataListForEvaluate = rawDataListForEvaluate.Take((int)numberOfElementsForEvaluate);
+                var taskMetrics = mlManager.EvaluateAll(rawDataListForEvaluate);
                 await ConsoleHelper.Loading("Evaluating model", $"{Name}Process#1");
                 metrics = await taskMetrics;
             }

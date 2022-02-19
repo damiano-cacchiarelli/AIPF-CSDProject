@@ -173,7 +173,7 @@ namespace AIPF.MLManager
                 foreach (var mm in m.Metrics)
                 {
                     //m.Name + mm.Name + ", " + mm.Value;
-                    activity?.SetTag(m.Name + "." + mm.Name, mm.Value);
+                    activity?.SetTag($"metric.{m.Name}.{mm.Name}", mm.Value);
                 }
             }
 
