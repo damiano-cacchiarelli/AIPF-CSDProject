@@ -76,7 +76,6 @@ The configuration of the server is done, you can switch to the client. You have 
 
 Finally, you can compile and run the AIPF-Console solution: 
 
-**IMG**
 <p align="center"><img src="https://drive.google.com/uc?export=view&id=173unP411CJLPrzJQ4iNNAme8zSU5Y0Nq"/> </p>
 
 Performing some operations, like fit, predict or evaluate, the system will report the telemetry data to the collector and the to elastic APM.
