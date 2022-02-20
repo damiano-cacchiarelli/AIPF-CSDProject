@@ -3,12 +3,12 @@
     public class MetricOptions
     {
         public string Name { get; private set; }
-        public string Value { get; private set; }
-        public string Min { get; set; }
-        public string Max { get; set; }
-        public string IsBetterIfCloserTo { get; set; }
+        public double Value { get; private set; }
+        public double Min { get; set; }
+        public double Max { get; set; }
+        public double IsBetterIfCloserTo { get; set; }
 
-        public MetricOptions(string name, string value)
+        public MetricOptions(string name, double value)
         {
             Name = name;
             Value = value;

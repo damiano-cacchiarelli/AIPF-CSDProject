@@ -1,5 +1,6 @@
 ﻿using AIPF.MLManager.Actions;
 using AIPF.MLManager.Metrics;
+using AIPF.Telemetry;
 using AIPF.Utilities;
 using Microsoft.ML;
 using OpenTelemetry.Trace;
@@ -98,14 +99,13 @@ namespace AIPF.MLManager
                 activity?.AddTag("type", typeof(MLManager<I, O>).ToGenericTypeString());
                 activity?.AddTag("input.type", typeof(I).ToGenericTypeString());
                 activity?.AddTag("output.type", typeof(O).ToGenericTypeString());
-
-                Array.ForEach(typeof(I).GetProperties(), p => activity?.AddTag($"input.{p.Name}", p.GetValue(toPredict)));
+                activity?.AddTags("input", toPredict);
 
                 try
                 {
                     var prediction = mlBuilder.Predict(toPredict);
-                    activity?.SetStatus(Status.Ok.WithDescription("All fine")); 
-                    Array.ForEach(typeof(O).GetProperties(), p => activity?.AddTag($"output.{p.Name}", p.GetValue(prediction)));
+                    activity?.SetStatus(Status.Ok.WithDescription("All fine"));
+                    activity?.AddTags("input", prediction);
                     return prediction;
                 }
                 catch (Exception ex)
@@ -173,10 +173,9 @@ namespace AIPF.MLManager
                 foreach (var mm in m.Metrics)
                 {
                     //m.Name + mm.Name + ", " + mm.Value;
-                    activity?.SetTag($"metric.{m.Name}.{mm.Name}", mm.Value);
+                    activity?.AddTag($"metric.{m.Name}.{mm.Name}", mm.Value.GetValueOr(0));
                 }
             }
-
             return metrics;
         }
     }

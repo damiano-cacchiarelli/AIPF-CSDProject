@@ -47,18 +47,23 @@ namespace AIPF_Console
                     Thread.Sleep(IExample.random.Next(2000, 2500));
                     AnsiConsole.Write(new Rule("Starting OpenTelemetry activity!").RuleStyle("green").Centered());
                     await example.OpenTelemetry(taskConf);
+                    
                     runnedExamples++;
+                    /*
                     if(runnedExamples > waitAfterXExamples)
                     {
                         Thread.Sleep(IExample.random.Next(300000, 600000));
                         runnedExamples = 0;
                         waitAfterXExamples = IExample.random.Next(50, 200);
                     }
+                    */
+
                     if (!exitTask.IsCompleted)
                     {
                         AnsiConsole.WriteLine();
                         AnsiConsole.WriteLine();
                         AnsiConsole.Write(new Rule("OpenTelemetry activity finished! Starting a new Context...").RuleStyle("red").Centered());
+                        AnsiConsole.WriteLine($"Already processed context: {runnedExamples}");
                         AnsiConsole.WriteLine("Type w to standby, or press any key to stop... (the program will continue forever)");
                         Thread.Sleep(IExample.random.Next(2000, 10000));
                     }
@@ -78,26 +83,27 @@ namespace AIPF_Console
 
         private TaskConfig NewTaskConfig()
         {
+            Random random = new Random();
             switch (example.Name)
             {
                 case "Robot-Loccioni":
                     return new TaskConfig()
                     {
-                        NumberOfPredictions = IExample.random.Next(5, 15),
-                        NumberOfElementsForEvaluate = IExample.random.Next(5, 10)
+                        NumberOfPredictions = random.Next(5, 15),
+                        NumberOfElementsForEvaluate = random.Next(5, 10)
                     };
                 default:
                     return new TaskConfig()
                         {
-                            NumberOfIterations = IExample.random.Next(50, 500),
-                            NumberOfElementsForTrain = IExample.random.Next(100, 3000),
+                            NumberOfIterations = random.Next(50, 500),
+                            NumberOfElementsForTrain = random.Next(100, 3000),
 
-                            NumberOfPredictions = IExample.random.Next(200, 10000),
-                            PercentageOfIncorrectPredictions = IExample.random.Next(0, 10),
+                            NumberOfPredictions = random.Next(200, 1000),
+                            PercentageOfIncorrectPredictions = random.Next(0, 10),
                             MinMillisecondsToSleepBetweenPredictions = 0,
                             MaxMillisecondsToSleepBetweenPredictions = 50,
 
-                            NumberOfElementsForEvaluate = IExample.random.Next(500, 10000)
+                            NumberOfElementsForEvaluate = random.Next(500, 10000)
                     };
             }
         }
