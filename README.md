@@ -1,4 +1,4 @@
-# AIPF-DAProject
+# Data Analysis on Machine Learning performance
 The objective of this project is to define a prototype in C# that is able to analyze in real time the diagnostic of the AIPF system, extending it. The system is able to use different Machine Learning models at run time and, by this way, we are able to analyze the different models and understand what is the best.
 
 We have already defined three different Machine Learning contexts and for each we have one or more Machine Learning models we can analyze.
