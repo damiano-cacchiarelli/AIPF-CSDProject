@@ -90,9 +90,15 @@ Inside the APM the traces/metrics are coming and we can analyze them; we can go 
 First of all we have to start the docker that contains Elastic Stack (ElasticSearch, Kibana e APM Server)  by executing _docker-compose up_, into the elastic-stack folder, and starting the OpenTelemetry Collector executable.
 
 Once it is done, we have to power on AIPF-Console on the guest machine and select one of the following models:
-- **MNST**: In this example we use our system to implement a machine learning model that allows us to recognize the numbers from an image. For Training we used the MNIST data set that provides us the images in the form of bites arrays. The pipeline that has been implemented is composed by the following steps: [**i**] we convert the input array of size 32x32, made by 0 and 1, into an Image; [**ii**] we resize the image from 32x32 to 8x8; [**iii**] we convert the image into a flat vector of size 64; [**iv**] we finally apply the ML algorithm (SdcaMaximumEntropy) to the processed data.
+- **MNST**: In this example we use our system to implement a machine learning model that allows us to recognize the numbers from an image. For Training we used the MNIST data set that provides us the images in the form of bites arrays. There are two pipelines for this model:
+   - The first pipeline, _MNIST default_, is composed by the following steps: [**i**] we convert the input array of size 32x32, made by 0 and 1, into an Image; [**ii**] we resize the image from 32x32 to 8x8; [**iii**] we convert the image into a flat vector of size 64; [**iv**] we finally apply the ML algorithm (SdcaMaximumEntropy) to the processed data.
+   - The second pipeline, _MNIST custom_, is composed by the following steps: [**i**] we resize the input array of size 32x32, made by 0 and 1, to 8x8 by summing 4x4 blocks; [**ii**] we convert this matrix into a flat vector of size 64; [**iii**] we finally apply the ML algorithm (SdcaMaximumEntropy) to the processed data.
 
-- **Taxi-Fare**: In this example we use our system to implement a machine learning model that allows us to estimate the taxi fare. The pipeline that has been implemented is composed by the following steps: [**i**] the first step is a filter that remove all useless data; [**ii**] after this, it is applied Euclidean Distance that calculate the distance between two point defined in term of geographic coordinates (Latitude and longitude); [**iii**] on this data is applied a filter that remove all data with a distance that doesn't satisfy it; [**iv**] and finally apply the ML algorithm in ONNX format to the processed data.
+- **Taxi-Fare**: In this example we use our system to implement a machine learning model that allows us to estimate the taxi fare. There are four pipelines for this model:
+    - _Taxi-Fare Huber_: [**i**] the first step is a filter that remove all useless data; [**ii**] after this, it is applied Euclidean Distance that calculate the distance between two point defined in term of geographic coordinates (Latitude and longitude); [**iii**] on this data is applied a filter that remove all data with a distance that doesn't satisfy it; [**iv**] and finally apply the Huber algorithm in ONNX format to the processed data.
+    - _Taxi-Fare Linear_: [**i**], [**ii**], [**iii**] are the same; [**iv**] we apply the Linear algorithm in ONNX format to the processed data.
+    - _Taxi-Fare Pca Huber_: [**i**], [**ii**], [**iii**] are the same; [**iv**] we apply the Pca algorithm in ONNX format and then we apply the Huber algorithm in ONNX  format to the processed data.
+    - _Taxi-Fare Pca Linear_: [**i**], [**ii**], [**iii**] are the same; [**iv**] we apply the Pca algorithm in ONNX format and then we apply the Linear algorithm in ONNX format to the processed data.
 
 - **Robot-Loccioni**: In this example we use our system to implement a machine learning model that allows us to understand if the robot is behaving as we expect or if there are some anomalies. In particular this robot is like an arm with 6 axes for movement and is used to build car headlights. The algorithm, starting from the measured currents, calculates which production cycle has been carried out. If the production cycle does not correspond to that actually executed (so the measured currents are very different from the usual ones) then an alarm is reported. The pipeline that has been implemented is composed by the following steps: [**i**] the first step is a filter that remove all row with missing value [**ii**] after this, it is applied a filter that remove all useless data (for example is removed all event with value 0, that represent an error in value acquisition); [**iii**] and finally apply the ML algorithm in ONNX format to the processed data.
 
@@ -109,6 +115,16 @@ In **Predict activity** we defined the following tags: “_model_name_” define
 
 In **Evaluate activity**  we defined the following tags: “_model_name_” define the name of the selected model, “_type_” define the type of the pipeline, “_processed_element_” represent the number of the elements used to evaluate the model, “_input_type_” and “_output_type_” define the data input and output type and finally “_metric.[algorithm].[metric_name]_” that represents the metrics of the model and depends on the Machine Learning Algorithm.
 
-Collected data are used to define ElasticSearch’s graphs and charts such as:
+Collected data are used to define ElasticSearch’s graphs and charts. We defined 3 different dashboards: 
 
-**TODO**
+1. A general dashboard that contains the CPU and Memory metrics, the model count grouped by name, the models usage during time grouped by name, the average of the activities,  and finally charts related to the process and threads.
+
+<p align="center"><img src="Documentation/images/Main dashboard.png"/> </p>
+
+2. The TaxiFare dashboard in which we compare the 4 models (Linear, Huber, Pca linear, Pca huber); the first graph compare the duration of the main activities (Fit, Predict and Evaluate) for each models, the second one compare the metrics (LogLoss, Mean Absolute Error, Mean Square Error, Root Mean Square, RSquared) of the models, and finally we have the usage of CPU and Memory by each models during time.
+
+<p align="center"><img src="Documentation/images/Taxifare dashboard.png"/> </p>
+
+3. The MNIST dashboard where the MNIST-Default and MNIST-Custom models are compared; the first graph compare the duration of the main activities (Fit, Predict and Evaluate) for each models, the second one compare the metrics (LogLoss, LogLossReduction, MacroAccuracy, MicroAccuracy, PerClassLogLoss from 0 to 9) of the models, and finally we have the usage of CPU and Memory by each models during time.
+
+<p align="center"><img src="Documentation/images/MNIST dashboard.png"/> </p>
